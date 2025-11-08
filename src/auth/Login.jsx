@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { useAuthStore } from "../store/useAuthStore.js";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,20 @@ const Login = () => {
   const [formData, setFormData] = useState({});
   const { login, loading } = useAuthStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
+  if (token && role) {
+    if (role === "student") navigate("/");
+    else if (role === "teacher") navigate("/");
+    else if (role === "admin") navigate("/");
+  }
+}, []);
+
+
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
