@@ -3,20 +3,19 @@ import { persist } from "zustand/middleware";
 import api from "../lib/axios";
 
 // Helper to allow the persist `onRehydrateStorage` callback to update the store
-// since that callback is defined outside the create() scope where `set` is available.
 let setAuthStore;
 
 export const useAuthStore = create(
   persist(
     (set, get) => {
-  // capture the store's set function so onRehydrateStorage can use it
   setAuthStore = set;
   return {
       user: null,
       role: null,
       token: null,
       loading: false,
-      ready: false, // when Zustand finishes restoring data
+      ready: false, // 💡 CRITICAL: Must be false initially
+      // ... (other actions)
 
       signup: async (data) => {
         set({ loading: true });
@@ -72,22 +71,21 @@ export const useAuthStore = create(
       name: "auth-storage",
       getStorage: () => localStorage,
 
-      // // ✅ guaranteed to fire when storage restored
-      // onRehydrateStorage: () => (state, error) => {
-      //   if (error) {
-      //     console.error("❌ Zustand rehydrate error:", error);
-      //   } else {
-      //     console.log("✅ Zustand rehydrated successfully");
-      //   }
-      //   // mark as ready *after hydration* using the captured setter
-      //   try {
-      //     if (typeof setAuthStore === "function") {
-      //       setAuthStore({ ready: true });
-      //     }
-      //   } catch (e) {
-      //     console.error("Failed to set ready flag after rehydration:", e);
-      //   }
-      // },
+      // 💡 CRITICAL: This is where 'ready' is set to true after state is loaded
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error("❌ Zustand rehydrate error:", error);
+        } else {
+          console.log("✅ Zustand rehydrated successfully");
+        }
+        try {
+          if (typeof setAuthStore === "function") {
+            setAuthStore({ ready: true });
+          }
+        } catch (e) {
+          console.error("Failed to set ready flag after rehydration:", e);
+        }
+      },
     }
   )
 );

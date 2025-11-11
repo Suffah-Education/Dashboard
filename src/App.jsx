@@ -12,6 +12,7 @@ import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import MyBatches from "./pages/Teacher/MyBatches";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Layout from "./components/Layout";
+import Batches from "./pages/Student/Batches";
 
 function App() {
   const { token, role } = useAuthStore();
@@ -58,6 +59,20 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/student/batches"
+            element={
+              <ProtectedRoute allowedRole="student">
+                <Layout>
+                  <Batches />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+
+
+
 
           <Route
             path="/teacher"

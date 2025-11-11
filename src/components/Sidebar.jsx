@@ -13,7 +13,7 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useState } from "react";
 
 const Sidebar = () => {
-  const { role, logout } = useAuthStore();
+  const { role, logout } = useAuthStore(); // use logout
   const [isOpen, setIsOpen] = useState(true);
 
   // ---------- Menu Lists by Role ----------
@@ -21,10 +21,11 @@ const Sidebar = () => {
     student: [
       { name: "Dashboard", icon: <Home size={18} />, path: "/student" },
       { name: "My Courses", icon: <BookOpen size={18} />, path: "/student/mycourses" },
-       { name: "Batches", icon: <BookOpen size={18} />, path: "/student/batches" },
+       { name: "All Batches", icon: <BookOpen size={18} />, path: "/student/batches" },
       { name: "My Teachers", icon: <Users size={18} />, path: "/student/teachers" },
       { name: "My Schedule", icon: <Calendar size={18} />, path: "/student/schedule" },
       { name: "Messages", icon: <MessageSquare size={18} />, path: "/student/messages" },
+      // {name: "Settings", icon: <Settings size={18} />, path: "/student/settings"},
       { name: "Grades", icon: <BarChart2 size={18} />, path: "/student/grades" },
     ],
 
@@ -100,10 +101,7 @@ const Sidebar = () => {
         </NavLink>
 
         <button
-          onClick={() => {
-            logout();
-            window.location.href = "/login";
-          }}
+          onClick={logout} // 🔥 FIXED: Only call logout, no manual window.location.href
           className="flex items-center text-red-500 hover:text-red-600 w-full"
         >
           <LogOut size={18} className="mr-3" />
