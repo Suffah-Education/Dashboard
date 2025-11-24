@@ -1,21 +1,35 @@
-import { Bell, Search, UserCircle } from "lucide-react";
+import { Bell, Search, UserCircle, Menu } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 
-const Navbar = () => {
+const Navbar = ({ setIsSidebarOpen }) => {
   const { user } = useAuthStore();
+
   return (
-    <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 fixed top-0 left-60 right-0 z-10">
-      <div className="flex items-center bg-gray-100 rounded-md px-3 py-2 w-96">
-        <Search size={18} className="text-gray-500 mr-2" />
-        <input
-          type="text"
-          placeholder="Search courses, teachers, anything..."
-          className="bg-transparent outline-none text-sm w-full"
-        />
+    <div className="fixed top-0 left-0 md:left-60 right-0 z-20 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6">
+      {/* Left Section */}
+      <div className="flex items-center space-x-3">
+        {/* Mobile menu toggle */}
+        <button
+          className="md:hidden text-gray-700 hover:text-green-600"
+          onClick={() => setIsSidebarOpen((prev) => !prev)}
+        >
+          <Menu size={22} />
+        </button>
+
+        {/* Search bar (hidden on very small screens) */}
+        <div className="hidden sm:flex items-center bg-gray-100 rounded-md px-3 py-2 w-48 sm:w-72 md:w-96">
+          <Search size={18} className="text-gray-500 mr-2" />
+          <input
+            type="text"
+            placeholder="Search courses, teachers..."
+            className="bg-transparent outline-none text-sm w-full"
+          />
+        </div>
       </div>
 
-      <div className="flex items-center justify-center space-x-4">
-        <h1 className="text-xl font-semibold text-green-700 mb-4">
+      {/* Right Section */}
+      <div className="flex items-center space-x-4">
+        <h1 className="hidden sm:block text-green-700 font-semibold text-base">
           {user?.name || "Student"}!
         </h1>
         <Bell size={20} className="text-gray-600 cursor-pointer" />

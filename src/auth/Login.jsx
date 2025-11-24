@@ -10,7 +10,7 @@ const Login = () => {
   const { login, loading, token, role: userRole } = useAuthStore();
   const navigate = useNavigate();
 
-  // 🕒 Show loader for 3 seconds before showing login form
+  // 🕒 Loader before showing login form
   useEffect(() => {
     const timer = setTimeout(() => setShowForm(true), 2000);
     return () => clearTimeout(timer);
@@ -25,21 +25,26 @@ const Login = () => {
     }
   }, [token, userRole, navigate]);
 
-  // Handle input
+  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle submit
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     const res = await login({ ...formData, role });
+    
+    if (res.underReview) {
+      navigate("/inreview");
+      return;
+    }
+    
     if (res.success) {
-      alert("Login successful!");
-      navigate("/"); // redirect to dashboard (auto-handled in App.jsx)
+      navigate("/");
     } else {
-      alert(res.message);
+      alert(res.message || "Login failed");
     }
   };
 
@@ -49,12 +54,12 @@ const Login = () => {
     admin: "bg-purple-600 text-white",
   };
 
-  // 🌀 Loader screen (3 seconds)
+  // 🌀 Loader
   if (!showForm) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
         <div className="animate-spin border-4 border-green-500 border-t-transparent rounded-full w-10 h-10 mb-3"></div>
-        <p className="text-gray-600">Loading login form...</p>
+        {/* <p className="text-gray-600">Loading login form...</p> */}
       </div>
     );
   }
@@ -83,24 +88,51 @@ const Login = () => {
           {role.charAt(0).toUpperCase() + role.slice(1)} Login
         </h2>
 
-        {/* Form */}
+        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-3">
-          <input
-            name="phone"
-            onChange={handleChange}
-            type="text"
-            placeholder="Phone Number"
-            className="w-full border p-2 rounded-lg"
-            required
-          />
-          <input
-            name="password"
-            onChange={handleChange}
-            type="password"
-            placeholder="Password"
-            className="w-full border p-2 rounded-lg"
-            required
-          />
+          {/* Student & Teacher Login */}
+          {(role === "student" || role === "teacher") && (
+            <>
+              <input
+                name="phone"
+                onChange={handleChange}
+                type="text"
+                placeholder="Phone Number"
+                className="w-full border p-2 rounded-lg"
+                required
+              />
+              <input
+                name="password"
+                onChange={handleChange}
+                type="password"
+                placeholder="Password"
+                className="w-full border p-2 rounded-lg"
+                required
+              />
+            </>
+          )}
+
+          {/* Admin Login */}
+          {role === "admin" && (
+            <>
+              <input
+                name="adminId"
+                onChange={handleChange}
+                type="text"
+                placeholder="Admin ID"
+                className="w-full border p-2 rounded-lg"
+                required
+              />
+              <input
+                name="password"
+                onChange={handleChange}
+                type="password"
+                placeholder="Password"
+                className="w-full border p-2 rounded-lg"
+                required
+              />
+            </>
+          )}
 
           {loading ? (
             <button

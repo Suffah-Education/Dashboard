@@ -8,73 +8,75 @@ import {
   BarChart2,
   Settings,
   Home,
+  X,
+  UserCircleIcon,
 } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useState } from "react";
 
-const Sidebar = () => {
-  const { role, logout } = useAuthStore(); // use logout
-  const [isOpen, setIsOpen] = useState(true);
+const Sidebar = ({ isOpen, setIsOpen }) => {
+  const { role, logout } = useAuthStore();
+  const [isExpanded, setIsExpanded] = useState(true);
 
-  // ---------- Menu Lists by Role ----------
   const menuConfig = {
     student: [
       { name: "Dashboard", icon: <Home size={18} />, path: "/student" },
       { name: "My Courses", icon: <BookOpen size={18} />, path: "/student/mycourses" },
-       { name: "All Batches", icon: <BookOpen size={18} />, path: "/student/batches" },
-      { name: "My Teachers", icon: <Users size={18} />, path: "/student/teachers" },
-      { name: "My Schedule", icon: <Calendar size={18} />, path: "/student/schedule" },
-      { name: "Messages", icon: <MessageSquare size={18} />, path: "/student/messages" },
-      // {name: "Settings", icon: <Settings size={18} />, path: "/student/settings"},
-      { name: "Grades", icon: <BarChart2 size={18} />, path: "/student/grades" },
+      { name: "All Batches", icon: <BookOpen size={18} />, path: "/student/batches" },
+      { name: "My Teachers", icon: <Users size={18} />, path: "/student/myteachers" },
+      { name: "Profile", icon: <UserCircleIcon size={18} />, path: "/student/profile" },
+      // { name: "My Schedule", icon: <Calendar size={18} />, path: "/student/schedule" },
+      // { name: "Messages", icon: <MessageSquare size={18} />, path: "/student/messages" },
+      // { name: "Grades", icon: <BarChart2 size={18} />, path: "/student/grades" },
     ],
-
     teacher: [
       { name: "Dashboard", icon: <Home size={18} />, path: "/teacher" },
       { name: "My Students", icon: <Users size={18} />, path: "/teacher/mystudents" },
       { name: "My Batches", icon: <Users size={18} />, path: "/teacher/mybatches" },
-      { name: "Schedule", icon: <Calendar size={18} />, path: "/teacher/schedule" },
-      { name: "Messages", icon: <MessageSquare size={18} />, path: "/teacher/messages" },
+      // { name: "Schedule", icon: <Calendar size={18} />, path: "/teacher/schedule" },
+      // { name: "Messages", icon: <MessageSquare size={18} />, path: "/teacher/messages" },
+      { name: "Profile", icon: <Settings size={18} />, path: "/teacher/teacherprofile" },
     ],
-
     admin: [
       { name: "Dashboard", icon: <Home size={18} />, path: "/admin" },
-      { name: "Manage Teachers", icon: <Users size={18} />, path: "/admin/manage-teachers" },
-      { name: "Manage Students", icon: <Users size={18} />, path: "/admin/manage-students" },
-      { name: "Reports", icon: <BarChart2 size={18} />, path: "/admin/reports" },
+      { name: "All Teachers", icon: <Users size={18} />, path: "/admin/allteachers" },
+      { name: "All Students", icon: <Users size={18} />, path: "/admin/allstudents" },
+      { name: "All Courses", icon: <Users size={18} />, path: "/admin/allcourses" },
+      { name: "Requests", icon: <BarChart2 size={18} />, path: "/admin/requests" },
     ],
   };
 
   const menuItems = menuConfig[role] || [];
 
-  // ---------- UI ----------
   return (
-    <div
-      className={`${
-        isOpen ? "w-60" : "w-20"
-      } h-screen bg-white border-r border-gray-200 fixed left-0 top-0 flex flex-col justify-between transition-all duration-300`}
-    >
-      {/* ---------- Header ---------- */}
-      <div>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <>
+      {/* Sidebar (Desktop + Tablet) */}
+      <div
+        className={`fixed top-0 left-0 bg-white border-r border-gray-200 h-screen flex flex-col justify-between transition-all duration-300 z-30
+          ${isOpen ? "translate-x-0 w-60" : "-translate-x-full md:translate-x-0 md:w-60"} 
+        `}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h1 className="text-green-700 font-bold text-lg truncate">
-            {isOpen ? "Suffah Education" : "SE"}
+            {isExpanded ? "Suffah Education" : "SE"}
           </h1>
           <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-gray-500 hover:text-green-600 transition"
+            className="md:hidden text-gray-600 hover:text-green-700"
+            onClick={() => setIsOpen(false)}
           >
-            {isOpen ? "<" : ">"}
+            <X size={22} />
           </button>
         </div>
 
-        {/* ---------- Nav Links ---------- */}
-        <nav className="flex flex-col mt-4 space-y-1">
+        {/* Nav Links */}
+        <nav className="flex flex-col mt-4 space-y-1 overflow-y-auto">
           {menuItems.map((item) => (
             <NavLink
               key={item.name}
               to={item.path}
               end={item.path === `/${role}`}
+              onClick={() => setIsOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-6 py-2.5 text-sm transition-all duration-200 ${
                   isActive
@@ -84,31 +86,40 @@ const Sidebar = () => {
               }
             >
               <span className="flex-shrink-0">{item.icon}</span>
-              {isOpen && <span>{item.name}</span>}
+              {isExpanded && <span>{item.name}</span>}
             </NavLink>
           ))}
         </nav>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-100">
+          {/* <NavLink
+            to={`/${role}/settings`}
+            className="flex items-center mb-3 text-gray-600 hover:text-green-700"
+            onClick={() => setIsOpen(false)}
+          >
+            <Settings size={18} className="mr-3" />
+            {isExpanded && "Settings"}
+          </NavLink> */}
+
+          <button
+            onClick={logout}
+            className="flex items-center text-red-500 hover:text-red-600 w-full"
+          >
+            <LogOut size={18} className="mr-3" />
+            {isExpanded && "Logout"}
+          </button>
+        </div>
       </div>
 
-      {/* ---------- Footer ---------- */}
-      <div className="px-6 py-4 border-t border-gray-100">
-        <NavLink
-          to={`/${role}/settings`}
-          className="flex items-center mb-3 text-gray-600 hover:text-green-700"
-        >
-          <Settings size={18} className="mr-3" />
-          {isOpen && "Settings"}
-        </NavLink>
-
-        <button
-          onClick={logout} // 🔥 FIXED: Only call logout, no manual window.location.href
-          className="flex items-center text-red-500 hover:text-red-600 w-full"
-        >
-          <LogOut size={18} className="mr-3" />
-          {isOpen && "Logout"}
-        </button>
-      </div>
-    </div>
+      {/* Overlay on mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-30 z-20 md:hidden"
+          onClick={() => setIsOpen(false)}
+        ></div>
+      )}
+    </>
   );
 };
 

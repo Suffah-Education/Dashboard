@@ -37,7 +37,12 @@ const Signup = () => {
       const res = await signup({ ...formData, role });
       if (res.success) {
         alert("Signup successful!");
-        navigate("/"); // redirect handled by App.jsx role logic
+        // If teacher signed up, show InReview page until admin approves
+        if (role === "teacher") {
+          navigate("/inreview");
+        } else {
+          navigate("/");
+        }
       } else {
         alert(res.message || "Signup failed. Try again.");
       }
@@ -53,7 +58,7 @@ const Signup = () => {
     admin: "bg-purple-600 text-white",
   };
 
-  // 🌀 Show loader first
+  // 🌀 Loader
   if (!showForm) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
@@ -87,8 +92,8 @@ const Signup = () => {
           {role.charAt(0).toUpperCase() + role.slice(1)} Signup
         </h2>
 
-        {/* Signup Form */}
         <form onSubmit={handleSubmit} className="space-y-3">
+          {/* ---------- Student Signup ---------- */}
           {role === "student" && (
             <>
               <input
@@ -131,6 +136,7 @@ const Signup = () => {
             </>
           )}
 
+          {/* ---------- Teacher Signup ---------- */}
           {role === "teacher" && (
             <>
               <input
@@ -162,6 +168,36 @@ const Signup = () => {
                 type="email"
                 placeholder="Email"
                 className="w-full border p-2 rounded-lg"
+              />
+              <input
+                name="password"
+                onChange={handleChange}
+                type="password"
+                placeholder="Password"
+                className="w-full border p-2 rounded-lg"
+                required
+              />
+            </>
+          )}
+
+          {/* ---------- Admin Signup ---------- */}
+          {role === "admin" && (
+            <>
+              <input
+                name="name"
+                onChange={handleChange}
+                type="text"
+                placeholder="Admin Name"
+                className="w-full border p-2 rounded-lg"
+                required
+              />
+              <input
+                name="adminId"
+                onChange={handleChange}
+                type="text"
+                placeholder="Admin ID"
+                className="w-full border p-2 rounded-lg"
+                required
               />
               <input
                 name="password"

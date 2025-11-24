@@ -1,3 +1,12 @@
 teacher login ->  8208850312          password -> Tabrez22#@!
 
 student login -> 7020203012           password -> Muskan22#@!
+
+Admin login -> 1123 id    pasword -> Myadmin22#@!
+
+
+Test api key = rzp_test_RgInVdBoCrl8cb
+Test key secret = 92rYo9HqzOFlHJF09RiEWZI3
+
+
+

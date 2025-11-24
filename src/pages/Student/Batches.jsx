@@ -1,92 +1,116 @@
 import React, { useEffect } from "react";
-import { Search, ChevronDown, Calendar, Clock } from "lucide-react";
 import { useBatchStore } from "../../store/useBatchStore";
-
-const BatchCard = ({ name, code, teacher, startDate, capacity }) => {
-  return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-shadow duration-300 hover:shadow-xl">
-      <div className="h-40 bg-gradient-to-r from-green-100 to-green-300 flex items-center justify-center">
-        <p className="text-2xl font-semibold text-green-800">{name}</p>
-      </div>
-
-      <div className="p-4">
-        <p className="text-xs font-semibold text-green-600 mb-1 uppercase">
-          {teacher?.name || "Unknown Teacher"}
-        </p>
-
-        <h3 className="text-lg font-bold text-gray-800 mb-2 truncate">{code}</h3>
-
-        <div className="flex items-center justify-between text-xs mb-4 text-gray-700">
-          <div className="flex items-center">
-            <Calendar size={14} className="mr-2 text-green-600" />
-            <span>
-              Starts:{" "}
-              {new Date(startDate).toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </span>
-          </div>
-          <div className="flex items-center">
-            <Clock size={14} className="mr-2" />
-            <span>Seats: {capacity}</span>
-          </div>
-        </div>
-
-        <button className="w-full py-2 bg-green-700 text-white rounded-lg font-semibold hover:bg-green-800 transition">
-          Enroll Now
-        </button>
-      </div>
-    </div>
-  );
-};
+import { useAuthStore } from "../../store/useAuthStore";
+import { usePaymentStore } from "../../store/usePaymentStore";
+import { Calendar, Users, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Batches = () => {
-  const { batches, fetchAllBatches, loading, error } = useBatchStore();
+  const navigate = useNavigate();
+
+  const { fetchAllBatches, batches, loading, enrolledBatches, getMyEnrolledBatches } =
+    useBatchStore();
+  const { startPayment, payingBatchId } = usePaymentStore();
 
   useEffect(() => {
     fetchAllBatches();
-  }, [fetchAllBatches]);
+    getMyEnrolledBatches(); 
+  }, []);
 
   if (loading)
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin border-4 border-green-500 border-t-transparent rounded-full w-10 h-10"></div>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="text-center text-red-600 font-semibold mt-10">
-        {error}
+      <div className="flex justify-center items-center h-screen">
+        <div className="w-10 h-10 border-4 border-green-500 border-t-transparent animate-spin rounded-full"></div>
       </div>
     );
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="flex items-center justify-between pb-6">
-        <h2 className="text-2xl font-bold text-gray-800">All Batches</h2>
+      <h1 className="text-3xl font-bold mb-8 text-gray-800">All Batches</h1>
 
-        <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 w-72 shadow-sm">
-          <Search size={18} className="text-gray-500 mr-2" />
-          <input
-            type="text"
-            placeholder="Search for a batch..."
-            className="bg-transparent outline-none text-sm w-full"
-          />
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {batches.map((b) => {
+          // ❗ Check using store (correct source)
+          const isEnrolled = enrolledBatches.some((eb) => eb._id === b._id);
+
+          return (
+            <div
+              key={b._id}
+              onClick={() => navigate(`/student/batch/${b._id}`)}
+              className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer overflow-hidden"
+            >
+              {/* Banner */}
+              <div className="h-32 bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center p-4">
+                <h2 className="text-2xl font-bold text-green-900 text-center">
+                  {b.name}
+                </h2>
+              </div>
+
+              {/* Content */}
+              <div className="p-5">
+                <p className="text-sm font-semibold text-green-700 mb-3">
+                  {b.teacher?.name || "Teacher"}
+                </p>
+
+                <h3 className="text-lg font-bold text-gray-800 mb-4">
+                  {b.code}
+                </h3>
+
+                <div className="space-y-2 mb-5 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <Calendar size={16} className="text-green-600" />
+                    <span>
+                      Starts:{" "}
+                      {b.startDate
+                        ? new Date(b.startDate).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "TBA"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users size={16} className="text-green-600" />
+                    <span>Seats: {b.capacity || "Unlimited"}</span>
+                  </div>
+                </div>
+
+                {/* Enroll button with price */}
+                {!isEnrolled ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startPayment(b._id, b.name, b.price);
+                    }}
+                    className="w-full py-2 px-4 rounded-lg font-semibold text-white bg-green-600 hover:bg-green-700 transition"
+                  >
+                    Enroll for ₹{b.price}
+                  </button>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/student/batch/${b._id}`);
+                    }}
+                    className="w-full py-2 px-4 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 transition flex items-center justify-center gap-2"
+                  >
+                    Go to class <ArrowRight size={18} />
+                  </button>
+                )}
+
+                {/* Buffering animation */}
+                {payingBatchId === b._id && (
+                  <div className="mt-4 flex items-center justify-center">
+                    <div className="w-5 h-5 border-3 border-green-500 border-t-transparent animate-spin rounded-full"></div>
+                    <span className="ml-2 text-sm text-gray-600">Processing...</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
-
-      {batches.length === 0 ? (
-        <p className="text-center text-gray-500 mt-10">No batches available yet.</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {batches.map((batch) => (
-            <BatchCard key={batch._id} {...batch} />
-          ))}
-        </div>
-      )}
     </div>
   );
 };

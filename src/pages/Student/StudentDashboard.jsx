@@ -1,131 +1,134 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ArrowRight } from "lucide-react";
+import { useBatchStore } from "../../store/useBatchStore";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/useAuthStore";
+import { useAdminStore } from "../../store/useAdminStore";
 
 const StudentDashboard = () => {
-  const batches = [
-    {
-      name: "Hafiz Batch",
-      teacher: "Maulana Abdul Rahman",
-      progress: 75,
-      img: "https://images.unsplash.com/photo-1604908177522-f9e7123dfb96?w=400",
-    },
-    {
-      name: "Aalim Batch",
-      teacher: "Ustad Yusuf Ali",
-      progress: 40,
-      img: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=400",
-    },
-    {
-      name: "Tafseer Batch",
-      teacher: "Dr. Aisha Rahman",
-      progress: 20,
-      img: "https://images.unsplash.com/photo-1616628188465-9c3a235f7f6b?w=400",
-    },
-  ];
+  const navigate = useNavigate();
+  const { batches, fetchAllBatches, loading, error } = useBatchStore();
+  const { user } = useAuthStore();
+  const { teachers, fetchApprovedTeachers } = useAdminStore();
 
-  const tafseers = [
-    {
-      title: "Tafseer-ul-Quran - Live Bayan",
-      subtitle: "Surah Al-Baqarah (Part 2)",
-      time: "Today, 5:00 PM",
-    },
-    {
-      title: "Hadith Explanation - Class 4",
-      subtitle: "Riyaz-us-Saliheen",
-      time: "Tomorrow, 2:00 PM",
-    },
-    {
-      title: "Qirat Competition",
-      subtitle: "Final Round",
-      time: "Sunday, 11:00 AM",
-    },
-  ];
+  // Fetch batches when component loads
+  useEffect(() => {
+    fetchAllBatches();
+    fetchApprovedTeachers(1);
+  }, [fetchAllBatches, fetchApprovedTeachers]);
+
+  const displayedBatches = batches.slice(0, 3);
 
   return (
-    <div className="bg-[#f8f9f8] min-h-screen p-8">
+    <div className="bg-[#f8f9f8] min-h-screen p-4 sm:p-6 md:p-8">
       {/* Header */}
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">
-        Assalamu Alaikum, Salman!
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">
+        Assalamu Alaikum, {user?.name || "Student"}
       </h1>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Section */}
-        <div className="col-span-2">
+        <div className="lg:col-span-2">
           {/* My Batches */}
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xl font-semibold text-gray-800">My Batches</h2>
-            <button className="text-green-600 text-sm font-medium flex items-center hover:text-green-700">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+              Batches
+            </h2>
+            <button
+              onClick={() => navigate("/student/batches")}
+              className="text-green-600 text-sm font-medium flex items-center hover:text-green-700"
+            >
               View All <ArrowRight size={16} className="ml-1" />
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-5 mb-8">
-            {batches.map((batch, i) => (
-              <div
-                key={i}
-                className="bg-white shadow-sm rounded-xl overflow-hidden transition hover:shadow-md"
-              >
-                <img
-                  src={batch.img}
-                  alt={batch.name}
-                  className="h-28 w-full object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-800 mb-1">
-                    {batch.name}
-                  </h3>
-                  <p className="text-gray-500 text-sm mb-3">
-                    {batch.teacher}
-                  </p>
-                  {/* <div className="w-full bg-gray-200 h-2 rounded-full mb-2">
-                    <div
-                      className="bg-yellow-400 h-2 rounded-full"
-                      style={{ width: `${batch.progress}%` }}
-                    ></div>
-                  </div> */}
-                  {/* <p className="text-sm text-gray-600 mb-3">
-                    Progress: {batch.progress}%
-                  </p> */}
-                  <button className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-1.5 rounded-md">
-                    RS 999
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Upcoming Tafseers & Bayans */}
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-lg font-semibold text-gray-800">
-                Upcoming Tafseers & Bayans
-              </h2>
-              <button className="text-green-600 text-sm font-medium flex items-center hover:text-green-700">
-                View All <ArrowRight size={16} className="ml-1" />
-              </button>
+          {/* Loading / Error / Batches Display */}
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <div className="animate-spin border-4 border-green-500 border-t-transparent rounded-full w-10 h-10"></div>
             </div>
-            <div className="space-y-4">
-              {tafseers.map((item, index) => (
-                <div key={index} className="flex justify-between items-center border-b pb-3 last:border-none">
-                  <div>
-                    <h3 className="font-medium text-gray-800">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-gray-500">{item.subtitle}</p>
+          ) : error ? (
+            <p className="text-red-600 text-center">{error}</p>
+          ) : displayedBatches.length === 0 ? (
+            <p className="text-gray-500 text-center mt-4">
+              No batches available yet.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-8">
+              {displayedBatches.map((batch, i) => (
+                <div
+                  key={batch._id || i}
+                  className="bg-white shadow-sm rounded-xl overflow-hidden hover:shadow-md transition"
+                >
+                  <div className="h-32 sm:h-40 w-full bg-gray-100 flex items-center justify-center text-gray-500 font-medium text-lg">
+                    {batch.name}
                   </div>
-                  <span className="text-red-500 text-sm font-medium">
-                    {item.time}
-                  </span>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-800 mb-1">
+                      {batch.code}
+                    </h3>
+                    <p className="text-gray-500 text-sm mb-3">
+                      {batch.teacher?.name || "Unknown Teacher"}
+                    </p>
+                    <button className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-1.5 rounded-md">
+                      Enroll
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
+          )}
+
+          {/* 🟢 Our Teachers Section (replaces Upcoming Tafseers & Bayans) */}
+          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-semibold text-gray-800">
+                Our Teachers
+              </h2>
+              <button
+                onClick={() => navigate("/student/myteachers")}
+                className="text-green-600 text-sm font-medium flex items-center hover:text-green-700"
+              >
+                View All <ArrowRight size={16} className="ml-1" />
+              </button>
+            </div>
+
+            {teachers.length === 0 ? (
+              <p className="text-gray-500 text-center mt-4">
+                No teachers available yet.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {teachers.slice(0, 3).map((teacher) => (
+                  <div
+                    key={teacher._id}
+                    className="bg-gray-50 border border-gray-100 rounded-lg p-4 flex flex-col items-center text-center hover:shadow-md transition"
+                  >
+                    <img
+                      src={
+                        teacher.photo ||
+                        "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+                      }
+                      alt={teacher.name}
+                      className="w-16 h-16 rounded-full object-cover mb-3"
+                    />
+                    <h3 className="font-semibold text-gray-800 mb-1">
+                      {teacher.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {teacher.education || "Islamic Studies"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Right Section */}
         <div className="space-y-6">
           {/* Today's Schedule */}
-          <div className="bg-white p-5 rounded-xl shadow-sm">
+          <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Today's Schedule
             </h3>
@@ -155,21 +158,24 @@ const StudentDashboard = () => {
           </div>
 
           {/* Quick Links */}
-          <div className="bg-white p-5 rounded-xl shadow-sm">
+          <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Quick Links
             </h3>
             <div className="grid grid-cols-2 gap-3">
-              {["Syllabus", "Doubt Forum", "Announcements", "Practice Tests"].map(
-                (link, i) => (
-                  <button
-                    key={i}
-                    className="bg-green-50 hover:bg-green-100 text-green-700 py-3 rounded-lg text-sm font-medium transition"
-                  >
-                    {link}
-                  </button>
-                )
-              )}
+              {[
+                "Syllabus",
+                "Doubt Forum",
+                "Announcements",
+                "Practice Tests",
+              ].map((link, i) => (
+                <button
+                  key={i}
+                  className="bg-green-50 hover:bg-green-100 text-green-700 py-3 rounded-lg text-sm font-medium transition w-full"
+                >
+                  {link}
+                </button>
+              ))}
             </div>
           </div>
         </div>
