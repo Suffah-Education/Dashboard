@@ -2,8 +2,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import api from "../lib/axios";
 
-// IMPORTANT — Allow persist rehydrate to call set later
-let setAuthStore;
+// ------------ IMPORTANT ------------
+let setAuthStore; // for persist rehydration fix
+// -----------------------------------
 
 export const useAuthStore = create(
   persist(
@@ -17,11 +18,17 @@ export const useAuthStore = create(
         loading: false,
         ready: false,
 
-        // ⭐ NEW: required for Razorpay
+        // ================
+        //   SET USER
+        // ================
         setUser: (updatedUser) => set({ user: updatedUser }),
 
+        // ================
+        //   SIGNUP
+        // ================
         signup: async (data) => {
           set({ loading: true });
+
           try {
             const res = await api.post("/auth/signup", data, {
               withCredentials: true,
@@ -32,6 +39,7 @@ export const useAuthStore = create(
               role: res.data.role,
               token: res.data.token,
               loading: false,
+              ready: true, // <--- SUPER IMPORTANT
             });
 
             return { success: true, message: res.data.message };
@@ -44,9 +52,12 @@ export const useAuthStore = create(
           }
         },
 
-
+        // ================
+        //   LOGIN
+        // ================
         login: async (data) => {
           set({ loading: true });
+
           try {
             const res = await api.post("/auth/login", data, {
               withCredentials: true,
@@ -57,23 +68,19 @@ export const useAuthStore = create(
               role: res.data.role,
               token: res.data.token,
               loading: false,
+              ready: true, // <--- REQUIRED FOR DP
             });
 
             return { success: true, message: res.data.message };
           } catch (err) {
             set({ loading: false });
 
-            // teacher not approved logic
-            if (
-              err.response?.status === 403 &&
-              err.response?.data?.underReview
-            ) {
+            // TEACHER UNDER REVIEW
+            if (err.response?.status === 403 && err.response?.data?.underReview) {
               return {
                 success: false,
                 underReview: true,
-                message:
-                  err.response?.data?.message ||
-                  "Your account is under review.",
+                message: err.response?.data?.message,
               };
             }
 
@@ -84,14 +91,16 @@ export const useAuthStore = create(
           }
         },
 
-        // ==========================
-        //     UPDATE PROFILE
-        // ==========================
-        updateProfile: async (data) => {
-          set({ loading: true });
+        // ================
+        //   UPDATE PROFILE
+        // ================
+        updateProfile: async (formData) => {
           try {
-            const res = await api.put("/auth/update-profile", data, {
+            set({ loading: true });
+
+            const res = await api.put("/auth/update-profile", formData, {
               withCredentials: true,
+              headers: { "Content-Type": "multipart/form-data" },
             });
 
             set({
@@ -109,9 +118,9 @@ export const useAuthStore = create(
           }
         },
 
-        // ==========================
-        //     CHANGE PASSWORD
-        // ==========================
+        // ================
+        //  CHANGE PASSWORD
+        // ================
         changePassword: async (data) => {
           try {
             const res = await api.post("/auth/change-password", data, {
@@ -126,35 +135,45 @@ export const useAuthStore = create(
           }
         },
 
-        // ==========================
-        //         LOGOUT
-        // ==========================
+        // ================
+        //     LOGOUT
+        // ================
         logout: async () => {
           try {
             await api.post("/auth/logout", {}, { withCredentials: true });
           } catch {}
 
-          set({ user: null, role: null, token: null });
+          // IMPORTANT: Do NOT set ready:false — UI breaks
+          set({
+            user: null,
+            role: null,
+            token: null,
+            ready: true,
+          });
         },
 
+        // ================
+        //   TOKEN CHECK
+        // ================
         isLoggedIn: () => !!get().token,
       };
     },
 
-    // ==========================
-    //     PERSIST OPTIONS
-    // ==========================
+    // ================
+    //   PERSIST CONFIG
+    // ================
     {
       name: "auth-storage",
       getStorage: () => localStorage,
 
       onRehydrateStorage: () => (state, error) => {
         if (error) {
-          console.error("❌ Zustand rehydrate error:", error);
+          console.error("❌ Persist Error:", error);
         } else {
-          console.log("✅ Auth store restored");
+          console.log("✅ Auth Store Rehydrated");
         }
 
+        // VERY IMPORTANT — needed for profilepic to appear after login
         try {
           if (typeof setAuthStore === "function") {
             setAuthStore({ ready: true });

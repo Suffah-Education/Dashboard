@@ -2,8 +2,9 @@ import React, { useEffect } from "react";
 import { useBatchStore } from "../../store/useBatchStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { usePaymentStore } from "../../store/usePaymentStore";
-import { Calendar, Users, ArrowRight } from "lucide-react";
+import { Calendar, Users, ArrowRight, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
 
 const Batches = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const Batches = () => {
 
   useEffect(() => {
     fetchAllBatches();
-    getMyEnrolledBatches(); 
+    getMyEnrolledBatches();
   }, []);
 
   if (loading)
@@ -26,7 +27,18 @@ const Batches = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">All Batches</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold mb-8 text-gray-800">All Batches</h1>
+        <div className="hidden sm:flex items-center bg-gray-100 rounded-md px-3 py-2 w-48 sm:w-72 md:w-96">
+          <Search size={18} className="text-gray-500 mr-2" />
+          <input
+            type="text"
+            placeholder="Search courses, teachers..."
+            className="bg-transparent outline-none text-sm w-full"
+          />
+        </div>
+
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {batches.map((b) => {
@@ -63,10 +75,10 @@ const Batches = () => {
                       Starts:{" "}
                       {b.startDate
                         ? new Date(b.startDate).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
                         : "TBA"}
                     </span>
                   </div>

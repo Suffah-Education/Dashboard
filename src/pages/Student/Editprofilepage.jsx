@@ -1,60 +1,107 @@
 import React, { useState } from "react";
 import { useAuthStore } from "../../store/useAuthStore";
 import { ArrowLeft, Camera, Save } from "lucide-react";
-    import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Editprofilepage = () => {
   const { user, updateProfile } = useAuthStore();
   const navigate = useNavigate();
+
+  // ==== FORM STATE ====
   const [form, setForm] = useState({
     name: user?.name || "",
     phone: user?.phone || "",
     city: user?.city || "",
     class: user?.class || "",
     address: user?.address || "",
-    profilepic: user?.profilepic || "",
     dob: user?.dob ? user.dob.split("T")[0] : "",
   });
+
+  // ==== IMAGE STATE ====
   const [preview, setPreview] = useState(user?.profilepic || "");
+  const [imageFile, setImageFile] = useState(null);
+
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
+
+  // =============================
+  //     INPUT CHANGE HANDLER
+  // =============================
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+
+  // =============================
+  //     IMAGE CHANGE HANDLER
+  // =============================
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    setImageFile(file); // formdata me bhejna hoga
+
     const reader = new FileReader();
     reader.onloadend = () => {
       setPreview(reader.result);
-      setForm({ ...form, profilepic: reader.result }); // save base64 for now
     };
+
     reader.readAsDataURL(file);
   };
 
+
+  // =============================
+  //       SUBMIT FORM
+  // =============================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    const res = await updateProfile(form);
-    setSaving(false);
-    setMsg(res.message);
+
+    try {
+      const fd = new FormData();
+
+      // Text fields
+      Object.keys(form).forEach((key) => {
+        fd.append(key, form[key]);
+      });
+
+      // Image (optional)
+      if (imageFile) {
+        fd.append("profilepic", imageFile);
+      }
+
+      const res = await updateProfile(fd);
+
+      setMsg(res.message);
+      setSaving(false);
+
+      if (res.success) {
+        setTimeout(() => navigate(-1), 1200);
+      }
+    } catch (err) {
+      console.log(err);
+      setSaving(false);
+    }
   };
+
 
   return (
     <div className="bg-[#f8f9f8] min-h-screen p-6">
-        <button
-      onClick={() => navigate(-1)} // ek kadam peeche jaata hai
-      className="flex items-center gap-2 text-gray-700 hover:text-green-700 transition-colors bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-sm hover:shadow-md"
-    >
-      <ArrowLeft size={18} />
-      {/* <span className="font-medium text-sm">{label}</span> */}
-    </button>
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md p-6 md:p-8">
+      
+      {/* BACK BUTTON */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 text-gray-700 hover:text-green-700 transition-colors bg-white border border-gray-200 rounded-lg px-4 py-2 shadow-sm hover:shadow-md"
+      >
+        <ArrowLeft size={18} />
+      </button>
+
+      {/* CARD */}
+      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md p-6 md:p-8 mt-4">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Edit Profile</h2>
 
-        {/* Profile Picture */}
+        {/* PROFILE PICTURE */}
         <div className="flex items-center mb-8 space-x-6">
           <div className="relative">
             <img
@@ -62,19 +109,27 @@ const Editprofilepage = () => {
               alt="Profile"
               className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
             />
+
             <label className="absolute bottom-0 right-0 bg-green-600 text-white p-2 rounded-full cursor-pointer hover:bg-green-700">
               <Camera size={16} />
-              <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+              />
             </label>
           </div>
+
           <div>
             <p className="text-gray-700 font-medium">{form.name || "Your Name"}</p>
             <p className="text-gray-500 text-sm">{form.phone || "Phone number"}</p>
           </div>
         </div>
 
-        {/* Form Fields */}
+        {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-5">
+
           <div>
             <label className="block text-gray-700 font-medium mb-1">Full Name</label>
             <input
@@ -82,7 +137,7 @@ const Editprofilepage = () => {
               name="name"
               value={form.name}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500"
             />
           </div>
 
@@ -97,6 +152,7 @@ const Editprofilepage = () => {
                 className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500"
               />
             </div>
+
             <div>
               <label className="block text-gray-700 font-medium mb-1">City</label>
               <input
@@ -109,7 +165,9 @@ const Editprofilepage = () => {
             </div>
           </div>
 
+          {/* Class + DOB */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
             <div>
               <label className="block text-gray-700 font-medium mb-1">Class</label>
               <input
@@ -120,6 +178,7 @@ const Editprofilepage = () => {
                 className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500"
               />
             </div>
+
             <div>
               <label className="block text-gray-700 font-medium mb-1">Date of Birth</label>
               <input
@@ -130,8 +189,10 @@ const Editprofilepage = () => {
                 className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500"
               />
             </div>
+
           </div>
 
+          {/* ADDRESS */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">Address</label>
             <textarea
@@ -143,6 +204,7 @@ const Editprofilepage = () => {
             />
           </div>
 
+          {/* SAVE BUTTON */}
           <button
             type="submit"
             disabled={saving}

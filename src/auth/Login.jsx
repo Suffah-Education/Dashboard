@@ -9,6 +9,7 @@ const Login = () => {
   const [showForm, setShowForm] = useState(false);
   const { login, loading, token, role: userRole } = useAuthStore();
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 🕒 Loader before showing login form
   useEffect(() => {
@@ -34,17 +35,25 @@ const Login = () => {
   // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await login({ ...formData, role });
-    
-    if (res.underReview) {
-      navigate("/inreview");
-      return;
-    }
-    
-    if (res.success) {
-      navigate("/");
-    } else {
-      alert(res.message || "Login failed");
+    try {
+      setIsSubmitting(true);
+      const res = await login({ ...formData, role });
+
+      if (res.underReview) {
+        navigate("/inreview");
+        return;
+      }
+
+      if (res.success) {
+        navigate("/");
+      } else {
+        alert(res.message || "Login failed");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      alert("Login failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -134,7 +143,7 @@ const Login = () => {
             </>
           )}
 
-          {loading ? (
+          {isSubmitting ? (
             <button
               disabled
               className="w-full bg-gray-400 text-white py-2 rounded-lg"
