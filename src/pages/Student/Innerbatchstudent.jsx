@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 const Innerbatchstudent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { batchDetails, loading, getBatchDetails } = useBatchStore();
+  const { batchDetails, loading, getBatchDetails, accessStatus } = useBatchStore();
   const { startPayment } = usePaymentStore();
 
   useEffect(() => {

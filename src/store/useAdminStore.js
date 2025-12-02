@@ -7,30 +7,33 @@ export const useAdminStore = create((set, get) => ({
   loading: false,
   hasMore: true,
   currentPage: 1,
+  singleTeacher: null,
+  loadingTeacher: false,
+
 
 
   fetchApprovedTeachers: async (page = 1) => {
-  if (get().loading) return;
-  set({ loading: true });
+    if (get().loading) return;
+    set({ loading: true });
 
-  try {
-    const res = await api.get(`/admin?page=${page}`, {
-      withCredentials: true,
-    });
+    try {
+      const res = await api.get(`/admin?page=${page}`, {
+        withCredentials: true,
+      });
 
-    const { teachers, totalPages } = res.data;
+      const { teachers, totalPages } = res.data;
 
-    set((state) => ({
-      teachers: page === 1 ? teachers : [...state.teachers, ...teachers],
-      currentPage: page,
-      hasMore: page < totalPages,
-      loading: false,
-    }));
-  } catch (error) {
-    console.error("Teacher fetch error:", error);
-    set({ loading: false });
-  }
-},
+      set((state) => ({
+        teachers: page === 1 ? teachers : [...state.teachers, ...teachers],
+        currentPage: page,
+        hasMore: page < totalPages,
+        loading: false,
+      }));
+    } catch (error) {
+      console.error("Teacher fetch error:", error);
+      set({ loading: false });
+    }
+  },
 
 
   fetchPendingTeachers: async (page = 1) => {
@@ -79,4 +82,23 @@ export const useAdminStore = create((set, get) => ({
       console.error("Reject error:", err);
     }
   },
+  fetchSingleTeacher: async (id) => {
+    set({ loadingTeacher: true });
+  
+    try {
+      const res = await api.get(`/admin/teacher/${id}`, {
+        withCredentials: true,
+      });
+  
+      set({
+        singleTeacher: res.data,
+        loadingTeacher: false,
+      });
+    } catch (err) {
+      console.error("Error loading teacher:", err);
+      set({ loadingTeacher: false });
+    }
+  },
 }));
+
+

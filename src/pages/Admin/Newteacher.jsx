@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useCallback } from "react";
 import { useAdminStore } from "../../store/useAdminStore";
 import { Loader2, CheckCircle, XCircle, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Newteacher = () => {
   const {
@@ -14,6 +15,7 @@ const Newteacher = () => {
   } = useAdminStore();
 
   const observer = useRef();
+  const navigate = useNavigate();
 
   // load first page
   useEffect(() => {
@@ -52,12 +54,9 @@ const Newteacher = () => {
           {pendingTeachers.map((t, index) => (
             <div
               key={t._id}
-              ref={
-                index === pendingTeachers.length - 1
-                  ? lastTeacherRef
-                  : undefined
-              }
-              className="bg-white rounded-xl shadow p-5 border border-gray-100 hover:shadow-lg transition"
+              ref={index === pendingTeachers.length - 1 ? lastTeacherRef : undefined}
+              className="bg-white rounded-xl shadow p-5 border border-gray-100 hover:shadow-lg transition cursor-pointer"
+              onClick={() => navigate(`/admin/teacher/${t._id}`)}
             >
               <div className="flex items-center space-x-4 mb-4">
                 {t.photo ? (

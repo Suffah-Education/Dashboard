@@ -5,12 +5,12 @@ import { usePaymentStore } from "../../store/usePaymentStore";
 import { Calendar, Users, ArrowRight, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-
 const Batches = () => {
   const navigate = useNavigate();
 
   const { fetchAllBatches, batches, loading, enrolledBatches, getMyEnrolledBatches } =
     useBatchStore();
+
   const { startPayment, payingBatchId } = usePaymentStore();
 
   useEffect(() => {
@@ -37,28 +37,30 @@ const Batches = () => {
             className="bg-transparent outline-none text-sm w-full"
           />
         </div>
-
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {batches.map((b) => {
-          // ❗ Check using store (correct source)
-          const isEnrolled = enrolledBatches.some((eb) => eb._id === b._id);
+          const enrolledData = enrolledBatches.find((eb) => eb._id === b._id);
+          const isEnrolled = !!enrolledData;
+          const isExpired = enrolledData?.isSubscriptionExpired;
 
           return (
             <div
               key={b._id}
-              onClick={() => navigate(`/student/batch/${b._id}`)}
+              onClick={() =>
+                enrolledData
+                  ? navigate(`/student/enrolled/${b._id}`)   // ✅ enrolled --> EnrolledBatch
+                  : navigate(`/student/batch/${b._id}`)     // ❌ not enrolled --> Innerbatchstudent
+              }
               className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer overflow-hidden"
             >
-              {/* Banner */}
               <div className="h-32 bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center p-4">
                 <h2 className="text-2xl font-bold text-green-900 text-center">
                   {b.name}
                 </h2>
               </div>
 
-              {/* Content */}
               <div className="p-5">
                 <p className="text-sm font-semibold text-green-700 mb-3">
                   {b.teacher?.name || "Teacher"}
@@ -88,7 +90,7 @@ const Batches = () => {
                   </div>
                 </div>
 
-                {/* Enroll button with price */}
+                {/* ✅ ONLY LOGIC CHANGED, UI SAME */}
                 {!isEnrolled ? (
                   <button
                     onClick={(e) => {
@@ -98,6 +100,16 @@ const Batches = () => {
                     className="w-full py-2 px-4 rounded-lg font-semibold text-white bg-green-600 hover:bg-green-700 transition"
                   >
                     Enroll for ₹{b.price}
+                  </button>
+                ) : isExpired ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startPayment(b._id, b.name, b.price);
+                    }}
+                    className="w-full py-2 px-4 rounded-lg font-semibold text-white bg-red-600 hover:bg-red-700 transition"
+                  >
+                    Renew Subscription
                   </button>
                 ) : (
                   <button
@@ -111,11 +123,12 @@ const Batches = () => {
                   </button>
                 )}
 
-                {/* Buffering animation */}
                 {payingBatchId === b._id && (
                   <div className="mt-4 flex items-center justify-center">
                     <div className="w-5 h-5 border-3 border-green-500 border-t-transparent animate-spin rounded-full"></div>
-                    <span className="ml-2 text-sm text-gray-600">Processing...</span>
+                    <span className="ml-2 text-sm text-gray-600">
+                      Processing...
+                    </span>
                   </div>
                 )}
               </div>

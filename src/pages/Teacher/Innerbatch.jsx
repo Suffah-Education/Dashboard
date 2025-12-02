@@ -9,16 +9,17 @@ import {
   Edit,
   PlusCircle,
   Video,
+  CheckCircle,
 } from "lucide-react";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const TabBtn = ({ label, icon: Icon, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
-      active
-        ? "text-green-600 border-b-2 border-green-600 pb-3"
-        : "text-gray-500 hover:text-green-600 pb-3"
-    }`}
+    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${active
+      ? "text-green-600 border-b-2 border-green-600 pb-3"
+      : "text-gray-500 hover:text-green-600 pb-3"
+      }`}
   >
     <Icon size={18} /> {label}
   </button>
@@ -30,7 +31,8 @@ const Innerbatch = () => {
   const activeTab = tab.get("tab") || "content";
   const navigate = useNavigate();
 
-  const { getBatchDetails, sendMessage, addClass } = useBatchStore();
+  const { getBatchDetails, sendMessage, addClass, completeBatch } = useBatchStore();
+  const { user } = useAuthStore();
 
   const [batch, setBatch] = useState(null);
   const [msg, setMsg] = useState("");
@@ -65,6 +67,16 @@ const Innerbatch = () => {
     load();
   };
 
+  const handleCompleteBatch = async () => {
+    if (window.confirm("Are you sure you want to mark this batch as completed?")) {
+      const success = await completeBatch(id);
+      if (success) {
+        alert("✅ Batch marked as completed!");
+        window.location.reload();
+      }
+    }
+  };
+
   if (!batch) return <p className="p-8">Loading...</p>;
 
   return (
@@ -78,7 +90,33 @@ const Innerbatch = () => {
       </button>
 
       {/* TITLE */}
-      <h1 className="text-3xl font-bold text-gray-800">{batch.name}</h1>
+      {/* TITLE & COMPLETE BUTTON */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-800">{batch.name}</h1>
+
+        {user?.role === "teacher" && !batch.isCompleted && (
+          <button
+            onClick={handleCompleteBatch}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
+          >
+            <CheckCircle size={18} /> Mark Batch as Completed
+          </button>
+        )}
+
+        {batch.isCompleted && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-lg border border-gray-300">
+            <CheckCircle size={18} className="text-gray-500" />
+            <span className="font-semibold">Batch Completed</span>
+          </div>
+        )}
+      </div>
+
+      {batch.isCompleted && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+          <CheckCircle size={20} />
+          <span>🚫 This batch is completed. No more classes can be added.</span>
+        </div>
+      )}
 
       {/* TABS */}
       <div className="flex gap-6 border-b pb-1">

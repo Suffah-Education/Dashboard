@@ -2,10 +2,13 @@ import React, { useEffect } from "react";
 import { useBatchStore } from "../../store/useBatchStore";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, BookOpen, Users } from "lucide-react";
+import { usePaymentStore } from "../../store/usePaymentStore";
 
 const MyCourses = () => {
   const navigate = useNavigate();
+
   const { enrolledBatches, getMyEnrolledBatches, loading } = useBatchStore();
+  const { startPayment } = usePaymentStore();
 
   useEffect(() => {
     getMyEnrolledBatches();
@@ -20,14 +23,12 @@ const MyCourses = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-5 sm:p-8">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
           My Enrolled Courses ({enrolledBatches.length})
         </h1>
       </div>
 
-      {/* No Courses */}
       {enrolledBatches.length === 0 && (
         <div className="bg-white rounded-xl shadow-sm p-10 text-center">
           <h2 className="text-xl font-semibold text-gray-700 mb-2">
@@ -45,21 +46,18 @@ const MyCourses = () => {
         </div>
       )}
 
-      {/* Courses Grid */}
       {enrolledBatches.length > 0 && (
         <div className="space-y-6">
           {enrolledBatches.map((batch) => (
             <div
               key={batch._id}
-              className="bg-white rounded-xl shadow-md p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center hover:shadow-lg transition cursor-pointer"
               onClick={() => navigate(`/student/enrolled/${batch._id}`)}
+              className="bg-white rounded-xl shadow-md p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center hover:shadow-lg transition cursor-pointer"
             >
-              {/* Thumbnail */}
               <div className="w-full sm:w-40 h-32 bg-green-100 rounded-lg flex items-center justify-center text-green-700 text-2xl font-bold mb-4 sm:mb-0 sm:mr-5">
                 {batch.name.charAt(0).toUpperCase()}
               </div>
 
-              {/* Details */}
               <div className="flex-1 w-full">
                 <h3 className="text-xl font-semibold text-gray-800">
                   {batch.name}
@@ -78,29 +76,29 @@ const MyCourses = () => {
                     {batch.students?.length || 0} Students
                   </div>
                 </div>
-
-                {/* Progress Bar */}
-                {/* <div className="mt-4">
-                  <div className="w-full bg-gray-200 h-2 rounded-full">
-                    <div
-                      className="bg-green-600 h-2 rounded-full"
-                      style={{ width: "20%" }}
-                    ></div>
-                  </div>
-                </div> */}
               </div>
 
-              {/* Continue Button */}
               <div className="mt-4 sm:mt-0 sm:ml-4 w-full sm:w-auto">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/student/enrolled/${batch._id}`);
-                  }}
-                  className="w-full sm:w-auto px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 flex items-center gap-2 justify-center"
-                >
-                  Continue <ArrowRight size={18} />
-                </button>
+                {batch.isSubscriptionExpired ? (
+                  <button
+                    onClick={() =>
+                      startPayment(batch._id, batch.name, batch.price)
+                    }
+                    className="w-full sm:w-auto px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  >
+                    Renew
+                  </button>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/student/enrolled/${batch._id}`);
+                    }}
+                    className="w-full sm:w-auto px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 flex items-center gap-2 justify-center"
+                  >
+                    Continue <ArrowRight size={18} />
+                  </button>
+                )}
               </div>
             </div>
           ))}

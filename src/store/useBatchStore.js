@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import api from "../lib/axios.js";
-// import { set } from "mongoose";
 
 export const useBatchStore = create((set, get) => ({
   batches: [],
@@ -9,6 +8,11 @@ export const useBatchStore = create((set, get) => ({
   batchDetails: null,
   error: null,
   teacherStudents: [],
+
+  // 🔴 NEW: access error & status (for subscription expiry etc.)
+  accessError: null,
+  accessStatus: null,
+  renewData: null,
 
   // ✅ Create Batch
   createBatch: async (batchData) => {
@@ -64,19 +68,147 @@ export const useBatchStore = create((set, get) => ({
     }
   },
 
+  // ✅ Get Single Batch Details (subscription aware)
+  // getBatchDetails: async (id) => {
+  //   set({
+  //     loading: true,
+  //     batchDetails: null,
+  //     accessError: null,
+  //     accessStatus: null,
+  //   });
+
+  //   try {
+  //     const { data } = await api.get(`/batches/${id}`, { withCredentials: true });
+  //     set({
+  //       batchDetails: data,
+  //       loading: false,
+  //       accessError: null,
+  //       accessStatus: null,
+  //     });
+  //     return data;
+  //   } catch (err) {
+  //     console.error("Get Batch Details Error:", err);
+
+  //     const status = err.response?.status || null;
+  //     const message =
+  //       err.response?.data?.message || "Failed to load batch details";
+
+  //     set({
+  //       loading: false,
+  //       batchDetails: null,
+  //       accessError: message,
+  //       accessStatus: status,
+  //     });
+
+  //     return null;
+  //   }
+  // },
+
+  // getBatchDetails: async (id) => {
+  //   set({
+  //     loading: true,
+  //     accessError: null,
+  //     accessStatus: null,
+  //   });
+
+  //   try {
+  //     const { data } = await api.get(`/batches/${id}`, {
+  //       withCredentials: true,
+  //     });
+
+  //     set({
+  //       batchDetails: data,
+  //       loading: false,
+  //       accessError: null,
+  //       accessStatus: null,
+  //     });
+
+  //     return data;
+  //   } catch (err) {
+  //     console.error("Get Batch Details Error:", err);
+
+  //     const status = err.response?.status || null;
+  //     const message = err.response?.data?.message || "Access error";
+
+  //     // ✅ IMPORTANT FIX: batchDetails ko NULL nahi kar rahe
+  //     set((state) => ({
+  //       batchDetails: state.batchDetails,
+  //       loading: false,
+  //       accessStatus: status,
+  //       accessError: message,
+  //     }));
+
+  //     return null;
+  //   }
+  // },
+
 
   getBatchDetails: async (id) => {
-    set({ loading: true, batchDetails: null });
+    if (!id) return;
+
+    set({
+      loading: true,
+      accessError: null,
+      accessStatus: null,
+    });
+
     try {
-      const { data } = await api.get(`/batches/${id}`, { withCredentials: true });
-      set({ batchDetails: data, loading: false });
+      const { data } = await api.get(`/batches/${id}`, {
+        withCredentials: true,
+      });
+
+      set({
+        batchDetails: data,
+        loading: false,
+        accessError: null,
+        accessStatus: null,
+      });
+
       return data;
+
     } catch (err) {
-      console.error("Get Batch Details Error:", err);
-      set({ loading: false, batchDetails: null });
+      const status = err.response?.status;
+      const message = err.response?.data?.message || "Access error";
+
+      if (status !== 402) {
+        console.warn("⚠️ Access issue:", status, message);
+      }
+
+      // ✅ IMPORTANT: only handle 402 specially
+      if (status === 402) {
+        set({
+          loading: false,
+          accessStatus: 402,
+          accessError: message,
+          renewData: {
+            price: err.response?.data?.price,
+            batchName: err.response?.data?.batchName,
+          },
+        });
+        return null;
+      }
+
+      // For other errors, normal handling
+      set({
+        loading: false,
+        accessStatus: status,
+        accessError: message,
+      });
+
       return null;
     }
   },
+
+
+
+
+
+  // OPTIONAL helper if kabhi manually clear karna ho
+  clearAccessState: () =>
+    set({
+      accessError: null,
+      accessStatus: null,
+    }),
 
   addClass: async (id, payload) => {
     try {
@@ -111,7 +243,6 @@ export const useBatchStore = create((set, get) => ({
     return data;
   },
 
-
   fetchTeacherStudents: async () => {
     set({ loading: true });
     try {
@@ -145,7 +276,13 @@ export const useBatchStore = create((set, get) => ({
     }
   },
 
-
-
+  completeBatch: async (id) => {
+    try {
+      await api.put(`/batches/${id}/complete`);
+      return true;
+    } catch (err) {
+      console.error("Complete Batch Error:", err);
+      return false;
+    }
+  },
 }));
-

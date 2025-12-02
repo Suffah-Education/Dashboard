@@ -1,4 +1,4 @@
-import React, { useState } from "react"; 
+import React, { useState } from "react";
 import { X, Calendar, Users, Hash, PlusCircle, Trash, IndianRupee } from "lucide-react";
 import { useBatchStore } from "../store/useBatchStore";
 import { useAuthStore } from "../store/useAuthStore";
@@ -14,7 +14,7 @@ const CreateBatchModal = ({ isOpen, onClose }) => {
     name: "",
     code: "",
     startDate: "",
-    endDate: "",
+    // endDate: "",
     duration: "",
     capacity: 25,
     description: "",
@@ -59,7 +59,7 @@ const CreateBatchModal = ({ isOpen, onClose }) => {
         name: "",
         code: "",
         startDate: "",
-        endDate: "",
+        // endDate: "",
         duration: "",
         capacity: 25,
         description: "",
@@ -172,7 +172,7 @@ const CreateBatchModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">End Date</label>
               <div className="relative">
                 <Calendar size={18} className="absolute left-3 top-2.5 text-gray-400" />
@@ -184,7 +184,7 @@ const CreateBatchModal = ({ isOpen, onClose }) => {
                   className="w-full pl-10 py-2 border rounded-lg focus:ring-green-500"
                 />
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Duration */}

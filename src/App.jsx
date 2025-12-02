@@ -32,6 +32,8 @@ import Innerbatchstudent from "./pages/Student/Innerbatchstudent.jsx";
 import EnrolledBatch from "./pages/Student/Enrolledbatch.jsx";
 import Editteacherprofile from "./pages/Teacher/Editteacherprofile.jsx";
 import TeacherChangePassword from "./pages/Teacher/TeacherChangePassword.jsx";
+import AdminBatch from "./pages/Admin/AdminBatch.jsx";
+import TeacherRequestDetails from "./pages/Admin/TeacherRequestDetails.jsx";
 
 function App() {
   const { token, role } = useAuthStore();
@@ -266,7 +268,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/admin/allstudents"
             element={
               <ProtectedRoute allowedRole="admin">
@@ -275,7 +277,7 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             }
-          />
+          /> */}
           <Route
             path="/admin/allcourses"
             element={
@@ -286,6 +288,28 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/batch/:id"
+            element={
+              <ProtectedRoute allowedRole="admin">
+                <Layout>
+                  <AdminBatch />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/teacher/:id"
+            element={
+              <ProtectedRoute allowedRole="admin">
+                <Layout>
+                  <TeacherRequestDetails />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+
           <Route
             path="/admin/requests"
             element={
@@ -298,7 +322,7 @@ function App() {
           />
 
           <Route path="*" element={<Navigate to={getRedirectPath()} />} />
-          
+
         </Routes>
       </BrowserRouter>
     </RootReady>
