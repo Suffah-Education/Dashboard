@@ -24,7 +24,7 @@ const AdminBatch = () => {
     return (
       <div className="p-8 text-center">
         <div className="animate-spin border-4 border-green-500 border-t-transparent rounded-full w-10 h-10"></div>
-        <p className="mt-3 text-gray-600">Loading batch...</p>
+        {/* <p className="mt-3 text-gray-600">Loading batch...</p> */}
       </div>
     );
   }
