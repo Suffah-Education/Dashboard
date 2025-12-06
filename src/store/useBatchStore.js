@@ -200,8 +200,9 @@ export const useBatchStore = create((set, get) => ({
       const { data } = await api.get("/batches/my-enrolled", {
         withCredentials: true,
       });
-      set({ enrolledBatches: data || [], loading: false });
-      return data || [];
+      // ✅ FIX: Extract batches array from response object
+      set({ enrolledBatches: data.batches || [], loading: false });
+      return data.batches || [];
     } catch (err) {
       console.error("Error fetching enrolled batches:", err);
       set({ enrolledBatches: [], loading: false });
