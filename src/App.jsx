@@ -1,41 +1,52 @@
 // App.jsx
+import { Suspense, lazy, memo } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
 import RootReady from "./routes/RootLayout";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
+// Fast-load auth pages (critical path)
 import Signup from "./auth/Signup";
 import Login from "./auth/Login";
-import StudentDashboard from "./pages/Student/StudentDashboard";
-import Mycourses from "./pages/Student/Mycourses";
-import TeacherDashboard from "./pages/Teacher/TeacherDashboard";
-import MyBatches from "./pages/Teacher/MyBatches";
-import AdminDashboard from "./pages/Admin/AdminDashboard";
 import Layout from "./components/Layout";
-import Batches from "./pages/Student/Batches";
-import Mystudents from "./pages/Teacher/Mystudents";
-import Myteachers from "./pages/Student/Myteachers";
-import Settings from "./pages/Student/Settings";
-import Teachersetting from "./pages/Teacher/Teacherprofile";
-import Allteachers from "./pages/Admin/Allteachers";
-import Allstudents from "./pages/Admin/Allstudents";
-import Newteacher from "./pages/Admin/Newteacher";
-import Profile from "./pages/Student/Profile";
-import Allcourses from "./pages/Admin/Allcourses";
 import InReview from "./components/InReview.jsx";
-import Editprofilepage from "./pages/Student/Editprofilepage.jsx";
-import Innerbatch from "./pages/Teacher/Innerbatch.jsx";
-import EditBatch from "./pages/Teacher/EditBatch.jsx";
-import PrivacyPolicy from "./pages/Policies/Privacypolicy.jsx";
-import TermsConditions from "./pages/Policies/Termsconditions.jsx";
-import Innerbatchstudent from "./pages/Student/Innerbatchstudent.jsx";
-import EnrolledBatch from "./pages/Student/Enrolledbatch.jsx";
-import Editteacherprofile from "./pages/Teacher/Editteacherprofile.jsx";
-import TeacherChangePassword from "./pages/Teacher/TeacherChangePassword.jsx";
-import AdminBatch from "./pages/Admin/AdminBatch.jsx";
-import TeacherRequestDetails from "./pages/Admin/TeacherRequestDetails.jsx";
 
-function App() {
+// Lazy load all route components for faster initial load
+const StudentDashboard = lazy(() => import("./pages/Student/StudentDashboard"));
+const Mycourses = lazy(() => import("./pages/Student/Mycourses"));
+const TeacherDashboard = lazy(() => import("./pages/Teacher/TeacherDashboard"));
+const MyBatches = lazy(() => import("./pages/Teacher/MyBatches"));
+const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard"));
+const Batches = lazy(() => import("./pages/Student/Batches"));
+const Mystudents = lazy(() => import("./pages/Teacher/Mystudents"));
+const Myteachers = lazy(() => import("./pages/Student/Myteachers"));
+const Settings = lazy(() => import("./pages/Student/Settings"));
+const Teachersetting = lazy(() => import("./pages/Teacher/Teacherprofile"));
+const Allteachers = lazy(() => import("./pages/Admin/Allteachers"));
+const Allstudents = lazy(() => import("./pages/Admin/Allstudents"));
+const Newteacher = lazy(() => import("./pages/Admin/Newteacher"));
+const Profile = lazy(() => import("./pages/Student/Profile"));
+const Allcourses = lazy(() => import("./pages/Admin/Allcourses"));
+const Editprofilepage = lazy(() => import("./pages/Student/Editprofilepage.jsx"));
+const Innerbatch = lazy(() => import("./pages/Teacher/Innerbatch.jsx"));
+const EditBatch = lazy(() => import("./pages/Teacher/EditBatch.jsx"));
+const PrivacyPolicy = lazy(() => import("./pages/Policies/Privacypolicy.jsx"));
+const TermsConditions = lazy(() => import("./pages/Policies/Termsconditions.jsx"));
+const Innerbatchstudent = lazy(() => import("./pages/Student/Innerbatchstudent.jsx"));
+const EnrolledBatch = lazy(() => import("./pages/Student/Enrolledbatch.jsx"));
+const Editteacherprofile = lazy(() => import("./pages/Teacher/Editteacherprofile.jsx"));
+const TeacherChangePassword = lazy(() => import("./pages/Teacher/TeacherChangePassword.jsx"));
+const AdminBatch = lazy(() => import("./pages/Admin/AdminBatch.jsx"));
+const TeacherRequestDetails = lazy(() => import("./pages/Admin/TeacherRequestDetails.jsx"));
+
+// Reusable loading fallback
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center w-full min-h-screen">
+    <div className="animate-spin h-10 w-10 text-blue-600 border-4 border-blue-200 rounded-full border-t-blue-600"></div>
+  </div>
+);
+
+const App = memo(function App() {
   const { token, role } = useAuthStore();
 
   const getRedirectPath = () => {
@@ -83,7 +94,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="student">
                 <Layout>
-                  <StudentDashboard />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <StudentDashboard />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -93,7 +106,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="student">
                 <Layout>
-                  <Mycourses />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Mycourses />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -103,7 +118,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="student">
                 <Layout>
-                  <Myteachers />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Myteachers />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -113,7 +130,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="student">
                 <Layout>
-                  <Innerbatchstudent />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Innerbatchstudent />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -123,7 +142,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="student">
                 <Layout>
-                  <EnrolledBatch />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <EnrolledBatch />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -133,7 +154,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="student">
                 <Layout>
-                  <Batches />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Batches />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -143,7 +166,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="student">
                 <Layout>
-                  <Profile />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Profile />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -153,7 +178,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="student">
                 <Layout>
-                  <Editprofilepage />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Editprofilepage />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -168,7 +195,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="teacher">
                 <Layout>
-                  <TeacherDashboard />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <TeacherDashboard />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -178,7 +207,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="teacher">
                 <Layout>
-                  <Editteacherprofile />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Editteacherprofile />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -188,7 +219,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="teacher">
                 <Layout>
-                  <Mystudents />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Mystudents />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -198,7 +231,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="teacher">
                 <Layout>
-                  <MyBatches />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <MyBatches />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -208,7 +243,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="teacher">
                 <Layout>
-                  <Innerbatch />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Innerbatch />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -218,7 +255,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="teacher">
                 <Layout>
-                  <EditBatch />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <EditBatch />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -228,7 +267,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="teacher">
                 <Layout>
-                  <Teachersetting />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Teachersetting />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -238,7 +279,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="teacher">
                 <Layout>
-                  <TeacherChangePassword />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <TeacherChangePassword />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -253,7 +296,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="admin">
                 <Layout>
-                  <AdminDashboard />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <AdminDashboard />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -263,7 +308,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="admin">
                 <Layout>
-                  <Allteachers />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Allteachers />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -273,7 +320,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="admin">
                 <Layout>
-                  <Allstudents />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Allstudents />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -283,7 +332,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="admin">
                 <Layout>
-                  <Allcourses />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Allcourses />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -293,7 +344,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="admin">
                 <Layout>
-                  <AdminBatch />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <AdminBatch />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -303,7 +356,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="admin">
                 <Layout>
-                  <TeacherRequestDetails />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <TeacherRequestDetails />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -315,7 +370,9 @@ function App() {
             element={
               <ProtectedRoute allowedRole="admin">
                 <Layout>
-                  <Newteacher />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Newteacher />
+                  </Suspense>
                 </Layout>
               </ProtectedRoute>
             }
@@ -327,6 +384,6 @@ function App() {
       </BrowserRouter>
     </RootReady>
   );
-}
+});
 
 export default App;

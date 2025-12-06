@@ -68,79 +68,7 @@ export const useBatchStore = create((set, get) => ({
     }
   },
 
-  // ✅ Get Single Batch Details (subscription aware)
-  // getBatchDetails: async (id) => {
-  //   set({
-  //     loading: true,
-  //     batchDetails: null,
-  //     accessError: null,
-  //     accessStatus: null,
-  //   });
 
-  //   try {
-  //     const { data } = await api.get(`/batches/${id}`, { withCredentials: true });
-  //     set({
-  //       batchDetails: data,
-  //       loading: false,
-  //       accessError: null,
-  //       accessStatus: null,
-  //     });
-  //     return data;
-  //   } catch (err) {
-  //     console.error("Get Batch Details Error:", err);
-
-  //     const status = err.response?.status || null;
-  //     const message =
-  //       err.response?.data?.message || "Failed to load batch details";
-
-  //     set({
-  //       loading: false,
-  //       batchDetails: null,
-  //       accessError: message,
-  //       accessStatus: status,
-  //     });
-
-  //     return null;
-  //   }
-  // },
-
-  // getBatchDetails: async (id) => {
-  //   set({
-  //     loading: true,
-  //     accessError: null,
-  //     accessStatus: null,
-  //   });
-
-  //   try {
-  //     const { data } = await api.get(`/batches/${id}`, {
-  //       withCredentials: true,
-  //     });
-
-  //     set({
-  //       batchDetails: data,
-  //       loading: false,
-  //       accessError: null,
-  //       accessStatus: null,
-  //     });
-
-  //     return data;
-  //   } catch (err) {
-  //     console.error("Get Batch Details Error:", err);
-
-  //     const status = err.response?.status || null;
-  //     const message = err.response?.data?.message || "Access error";
-
-  //     // ✅ IMPORTANT FIX: batchDetails ko NULL nahi kar rahe
-  //     set((state) => ({
-  //       batchDetails: state.batchDetails,
-  //       loading: false,
-  //       accessStatus: status,
-  //       accessError: message,
-  //     }));
-
-  //     return null;
-  //   }
-  // },
 
 
   getBatchDetails: async (id) => {
@@ -180,6 +108,11 @@ export const useBatchStore = create((set, get) => ({
           loading: false,
           accessStatus: 402,
           accessError: message,
+          batchDetails: {
+            _id: id,
+            price: err.response?.data?.price,
+            name: err.response?.data?.batchName,
+          },
           renewData: {
             price: err.response?.data?.price,
             batchName: err.response?.data?.batchName,

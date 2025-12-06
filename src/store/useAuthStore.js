@@ -16,7 +16,7 @@ export const useAuthStore = create(
         role: null,
         token: null,
         loading: false,
-        ready: false,
+        ready: true, // ✅ Changed from false to true to prevent loading screen
 
         // ================
         //   SET USER
@@ -135,13 +135,69 @@ export const useAuthStore = create(
           }
         },
 
+
+        forgotStep1: async (role, phone) => {
+          try {
+            const res = await api.post("/auth/forgot-password/question", {
+              role,
+              phone,
+            });
+            return { success: true, question: res.data.question };
+          } catch (err) {
+            return {
+              success: false,
+              message: err.response?.data?.message || "User not found",
+            };
+          }
+        },
+
+
+        forgotStep2: async (role, phone, answer) => {
+          try {
+            const res = await api.post("/auth/forgot-password/verify", {
+              role,
+              phone,
+              securityAnswer: answer,
+            });
+            return { success: true };
+          } catch (err) {
+            return {
+              success: false,
+              message: err.response?.data?.message || "Wrong answer",
+            };
+          }
+        },
+
+
+
+
+        resetPassword: async (role, phone, securityAnswer, newPassword) => {
+          try {
+            const res = await api.post("/auth/forgot-password/reset", {
+              role,
+              phone,
+              securityAnswer,
+              newPassword,
+            });
+            return { success: true, message: res.data.message };
+          } catch (err) {
+            return {
+              success: false,
+              message: err.response?.data?.message || "Failed to reset password",
+            };
+          }
+        },
+
+
+
+
         // ================
         //     LOGOUT
         // ================
         logout: async () => {
           try {
             await api.post("/auth/logout", {}, { withCredentials: true });
-          } catch {}
+          } catch { }
 
           // IMPORTANT: Do NOT set ready:false — UI breaks
           set({
@@ -150,6 +206,9 @@ export const useAuthStore = create(
             token: null,
             ready: true,
           });
+
+          // Redirect to login page
+          window.location.href = "/login";
         },
 
         // ================

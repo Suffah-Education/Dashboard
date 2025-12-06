@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import api from "../lib/axios";
 import { useAuthStore } from "./useAuthStore";
-import { useBatchStore } from "./useBatchStore";
 
 export const usePaymentStore = create((set) => ({
     loading: false,
@@ -43,14 +42,11 @@ export const usePaymentStore = create((set) => ({
 
                         if (verifyRes.data?.success) {
 
-                            // ✅ Update user
+                            // ⭐ FIX: correctly update user
                             useAuthStore.setState({ user: verifyRes.data.user });
 
-                            // ✅ REFRESH enrolled batches list
-                            const { getMyEnrolledBatches } = useBatchStore.getState();
-                            await getMyEnrolledBatches();
-                            alert("✅ Payment Successful!");
-                            // set({ loading: false, payingBatchId: null });
+                            alert("Enrolled Successfully!");
+                            set({ loading: false, payingBatchId: null });
                             window.location.reload();
                         } else {
                             alert("Payment verification failed");

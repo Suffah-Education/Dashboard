@@ -79,7 +79,7 @@ const EnrolledBatch = () => {
           >
             {payingBatchId === batchDetails?._id
               ? "Processing..."
-              : `Renew for ₹${renewData?.price}`}
+              : `Renew for ₹${batchDetails?.price}`}
           </button>
         </div>
       </div>
