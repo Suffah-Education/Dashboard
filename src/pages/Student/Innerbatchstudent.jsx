@@ -71,14 +71,14 @@ const Innerbatchstudent = () => {
           </p>
         </div>
 
-        <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
+        {/* <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
           <p className="text-sm text-gray-600 font-semibold mb-1">End Date</p>
           <p className="text-lg font-bold">
             {batch.endDate
               ? new Date(batch.endDate).toLocaleDateString("en-IN")
               : "TBA"}
           </p>
-        </div>
+        </div> */}
 
         <div className="bg-pink-50 border border-pink-200 p-4 rounded-lg">
           <p className="text-sm text-gray-600 font-semibold mb-1">Capacity</p>

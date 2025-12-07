@@ -8,12 +8,12 @@ import { useNavigate } from "react-router-dom";
 const MyTeachers = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
-  const observer = useRef();
+  const observer = useRef(null);
 
   const {
     enrolledBatches,
     getMyEnrolledBatches,
-    loading,
+    loading: enrolledLoading,
   } = useBatchStore();
 
   const {
@@ -21,39 +21,49 @@ const MyTeachers = () => {
     fetchApprovedTeachers,
     hasMore,
     currentPage,
+    loading: teachersLoading,
   } = useAdminStore();
 
-  // ✅ Fetch enrolled batches (for student)
+  // 🔥 Fetch enrolled teachers ONCE
   useEffect(() => {
     if (user?.role === "student") {
       getMyEnrolledBatches();
     }
   }, [user]);
 
-  // ✅ Load teachers for "Explore All"
+  // 🔥 Load first page of approved teachers
   useEffect(() => {
     fetchApprovedTeachers(1);
   }, []);
 
-  // ✅ Extract enrolled teachers from enrolled batches
+  // 🔥 Extract student's own teachers safely
   const myEnrolledTeachers = useMemo(() => {
-    if (!enrolledBatches || enrolledBatches.length === 0) return [];
+    const list =
+      Array.isArray(enrolledBatches?.batches)
+        ? enrolledBatches.batches
+        : Array.isArray(enrolledBatches)
+          ? enrolledBatches
+          : [];
 
     const teacherMap = new Map();
 
-    enrolledBatches.forEach((batch) => {
-      if (batch.teacher && batch.teacher._id) {
-        teacherMap.set(batch.teacher._id, batch.teacher);
+    list.forEach((batch) => {
+      if (batch.teacher?._id) {
+        teacherMap.set(batch.teacher._id, {
+          ...batch.teacher,
+          batchName: batch.name,
+        });
       }
     });
 
     return Array.from(teacherMap.values());
   }, [enrolledBatches]);
 
-  // ✅ Infinite Scroll for all teachers
+  // ♾️ Infinite scroll for Explore All Teachers
   const lastTeacherRef = useCallback(
     (node) => {
-      if (loading) return;
+      if (teachersLoading || !hasMore) return;
+
       if (observer.current) observer.current.disconnect();
 
       observer.current = new IntersectionObserver((entries) => {
@@ -64,17 +74,15 @@ const MyTeachers = () => {
 
       if (node) observer.current.observe(node);
     },
-    [loading, hasMore, currentPage, fetchApprovedTeachers]
+    [teachersLoading, hasMore, currentPage, fetchApprovedTeachers]
   );
 
   return (
     <div className="p-6 bg-[#f8f9f8] min-h-screen">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        My Teachers
-      </h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">My Teachers</h1>
 
-      {/* ✅ My Teachers Section */}
-      {myEnrolledTeachers.length === 0 ? (
+      {/* ------------------ My Enrolled Teachers ------------------ */}
+      {myEnrolledTeachers.length === 0 && !enrolledLoading ? (
         <div className="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-center">
           <p className="text-gray-600 font-medium mb-2">
             Enroll in a course to see your teachers.
@@ -104,18 +112,14 @@ const MyTeachers = () => {
                   className="w-16 h-16 rounded-full object-cover"
                 />
                 <div>
-                  <h3 className="font-semibold text-gray-800">
-                    {teacher.name}
-                  </h3>
+                  <h3 className="font-semibold text-gray-800">{teacher.name}</h3>
                   <p className="text-sm text-gray-500">
                     {teacher.education || "Teacher"}
                   </p>
                 </div>
               </div>
 
-              <button
-                className="bg-green-50 hover:bg-green-100 text-green-700 text-sm font-medium flex items-center justify-center px-4 py-2 mt-4 sm:mt-0 rounded-md transition"
-              >
+              <button className="bg-green-50 hover:bg-green-100 text-green-700 text-sm font-medium flex items-center justify-center px-4 py-2 mt-4 sm:mt-0 rounded-md transition">
                 <MessageSquare size={16} className="mr-2" />
                 Message
               </button>
@@ -124,10 +128,8 @@ const MyTeachers = () => {
         </div>
       )}
 
-      {/* ✅ Explore All Teachers Section */}
-      <h2 className="text-xl font-semibold text-gray-800 mb-6 mt-8">
-        Explore All Teachers
-      </h2>
+      {/* ------------------ Explore All Teachers ------------------ */}
+      <h2 className="text-xl font-semibold text-gray-800 mb-6">Explore All Teachers</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {teachers.map((teacher, i) => (
@@ -147,12 +149,8 @@ const MyTeachers = () => {
             />
 
             <div className="p-4">
-              <h3 className="font-semibold text-gray-800 mb-1">
-                {teacher.name}
-              </h3>
-              <p className="text-sm text-gray-500 mb-3">
-                {teacher.education}
-              </p>
+              <h3 className="font-semibold text-gray-800 mb-1">{teacher.name}</h3>
+              <p className="text-sm text-gray-500 mb-3">{teacher.education}</p>
               <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-4 py-1.5 rounded-md">
                 View Profile
               </button>
@@ -161,7 +159,7 @@ const MyTeachers = () => {
         ))}
       </div>
 
-      {loading && (
+      {teachersLoading && (
         <div className="flex justify-center py-6">
           <Loader2 className="animate-spin text-green-600 w-8 h-8" />
         </div>

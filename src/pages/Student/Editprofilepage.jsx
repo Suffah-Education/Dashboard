@@ -88,7 +88,7 @@ const Editprofilepage = () => {
 
   return (
     <div className="bg-[#f8f9f8] min-h-screen p-6">
-      
+
       {/* BACK BUTTON */}
       <button
         onClick={() => navigate(-1)}
@@ -98,11 +98,17 @@ const Editprofilepage = () => {
       </button>
 
       {/* CARD */}
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md p-6 md:p-8 mt-4">
+      <div className="
+    max-w-3xl mx-auto bg-white rounded-xl shadow-md 
+    p-4 sm:p-6 md:p-8 mt-4
+    w-full
+">
+
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Edit Profile</h2>
 
         {/* PROFILE PICTURE */}
-        <div className="flex items-center mb-8 space-x-6">
+        <div className="flex flex-col sm:flex-row items-center sm:items-center mb-8 space-y-4 sm:space-y-0 sm:space-x-6">
+
           <div className="relative">
             <img
               src={preview || "https://via.placeholder.com/100"}

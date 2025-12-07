@@ -51,26 +51,6 @@ export const useBatchStore = create((set, get) => ({
     }
   },
 
-  // Fetch all batches for student
-  fetchAllBatches: async () => {
-    set({ loading: true, error: null });
-    try {
-      const { data } = await api.get("/batches");
-      set({ batches: data.batches, loading: false });
-      return true;
-    } catch (error) {
-      console.error("Fetch All Batches Error:", error.response?.data || error.message);
-      set({
-        loading: false,
-        error: error.response?.data?.message || error.message,
-      });
-      return false;
-    }
-  },
-
-
-
-
   getBatchDetails: async (id) => {
     if (!id) return;
 
@@ -97,9 +77,12 @@ export const useBatchStore = create((set, get) => ({
     } catch (err) {
       const status = err.response?.status;
       const message = err.response?.data?.message || "Access error";
+      const errorDetails = err.response?.data?.error;
 
       if (status !== 402) {
         console.warn("⚠️ Access issue:", status, message);
+        console.warn("📋 Error details:", errorDetails);
+        console.warn("📋 Full error response:", err.response?.data);
       }
 
       // ✅ IMPORTANT: only handle 402 specially
@@ -131,10 +114,6 @@ export const useBatchStore = create((set, get) => ({
       return null;
     }
   },
-
-
-
-
 
   // OPTIONAL helper if kabhi manually clear karna ho
   clearAccessState: () =>
@@ -194,19 +173,21 @@ export const useBatchStore = create((set, get) => ({
   },
 
   // ==========================
-  getMyEnrolledBatches: async () => {
+  getMyEnrolledBatches: async (page = 1, limit = 10) => {
     try {
       set({ loading: true });
       const { data } = await api.get("/batches/my-enrolled", {
+        params: { page, limit },
         withCredentials: true,
       });
-      // ✅ FIX: Extract batches array from response object
-      set({ enrolledBatches: data.batches || [], loading: false });
-      return data.batches || [];
+      // ✅ FIX: Store the full response object (includes batches, totalPages, etc.)
+      set({ enrolledBatches: data, loading: false });
+      return data;
     } catch (err) {
-      console.error("Error fetching enrolled batches:", err);
-      set({ enrolledBatches: [], loading: false });
-      return [];
+      console.error("Error fetching enrolled batches:", err.response?.data || err);
+
+      set({ enrolledBatches: { batches: [], currentPage: 1, totalPages: 0, total: 0 }, loading: false });
+      return { batches: [], currentPage: 1, totalPages: 0, total: 0 };
     }
   },
 
