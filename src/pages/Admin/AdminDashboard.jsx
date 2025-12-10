@@ -4,7 +4,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import api from "../../lib/axios";
 
 // ✅ React Query hook
-import { useBatchesQuery } from "../../hooks/useBatchesQuery";
+import { useBatchesQuery } from "../../Hooks/useBatchesQuery";
 
 const AdminDashboard = () => {
   const { teachers, fetchApprovedTeachers } = useAdminStore();
