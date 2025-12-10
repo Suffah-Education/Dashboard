@@ -79,6 +79,7 @@ const MyCourses = () => {
           {finalList.map((batch, index) => {
             const isExpired = batch.isSubscriptionExpired;
             const isLast = index === finalList.length - 1;
+            const isCompleted = batch.isCompleted || false; 
 
             return (
               <div
@@ -114,7 +115,7 @@ const MyCourses = () => {
                 </div>
 
                 {/* BUTTONS */}
-                <div className="mt-4 sm:mt-0 sm:ml-4 w-full sm:w-auto">
+                {/* <div className="mt-4 sm:mt-0 sm:ml-4 w-full sm:w-auto">
                   {isExpired ? (
                     <button
                       onClick={(e) => {
@@ -136,7 +137,44 @@ const MyCourses = () => {
                       Continue <ArrowRight size={18} />
                     </button>
                   )}
+                </div> */}
+                <div className="mt-4 sm:mt-0 sm:ml-4 w-full sm:w-auto">
+
+                  {isCompleted ? (
+                    // ⭐ COMPLETED
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      disabled
+                      className="w-full sm:w-auto px-6 py-2 bg-gray-400 text-white rounded-lg cursor-default"
+                    >
+                      Completed
+                    </button>
+                  ) : isExpired ? (
+                    // ⭐ EXPIRED → RENEW
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startPayment(batch._id, batch.name, batch.price);
+                      }}
+                      className="w-full sm:w-auto px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                    >
+                      Renew for ₹{batch.price}
+                    </button>
+                  ) : (
+                    // ⭐ ACTIVE → CONTINUE
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/student/enrolled/${batch._id}`);
+                      }}
+                      className="w-full sm:w-auto px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 flex items-center gap-2 justify-center"
+                    >
+                      Continue <ArrowRight size={18} />
+                    </button>
+                  )}
+
                 </div>
+
               </div>
             );
           })}

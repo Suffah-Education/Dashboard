@@ -43,7 +43,7 @@ const Signup = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    console.log("🔧 handleChange called:", { name, value }); // DEBUG
+    // console.log("🔧 handleChange called:", { name, value }); // DEBUG
 
     setFormData((prev) => ({
       ...prev,
@@ -80,12 +80,12 @@ const Signup = () => {
       securityAnswer: formDataObj.get('securityAnswer') || '',
     };
 
-    console.log("📌 FINAL FORM DATA SENDING:", signupData); // DEBUG LOG
+    // console.log("📌 FINAL FORM DATA SENDING:", signupData); // DEBUG LOG
 
     const res = await signup(signupData);
 
     if (res?.success) {
-      alert("Signup successful!");
+      // alert("Signup successful!");
       if (role === "teacher") navigate("/inreview");
       else navigate("/");
     } else {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useBatchStore } from "../../store/useBatchStore";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import {
@@ -13,13 +13,18 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
 
+// ⭐ NEW: React Query
+import { useBatchDetailsQuery } from "../../Hooks/teachers/useBatchDetailsQuery";
+import { useQueryClient } from "@tanstack/react-query";
+
 const TabBtn = ({ label, icon: Icon, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${active
-      ? "text-green-600 border-b-2 border-green-600 pb-3"
-      : "text-gray-500 hover:text-green-600 pb-3"
-      }`}
+    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+      active
+        ? "text-green-600 border-b-2 border-green-600 pb-3"
+        : "text-gray-500 hover:text-green-600 pb-3"
+    }`}
   >
     <Icon size={18} /> {label}
   </button>
@@ -30,54 +35,65 @@ const Innerbatch = () => {
   const [tab, setTab] = useSearchParams();
   const activeTab = tab.get("tab") || "content";
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const { getBatchDetails, sendMessage, addClass, completeBatch } = useBatchStore();
+  const { sendMessage, addClass, completeBatch } = useBatchStore();
   const { user } = useAuthStore();
 
-  const [batch, setBatch] = useState(null);
   const [msg, setMsg] = useState("");
-
-  // Class Inputs
   const [classTitle, setClassTitle] = useState("");
   const [classLink, setClassLink] = useState("");
 
-  useEffect(() => {
-    load();
-  }, []);
+  // ⭐ REACT QUERY: FETCH BATCH DETAILS
+  const { data: batch, isLoading } = useBatchDetailsQuery(id);
 
-  async function load() {
-    const data = await getBatchDetails(id);
-    setBatch(data);
-  }
+  if (isLoading || !batch)
+    return <p className="p-8">Loading...</p>;
 
+  // -----------------------------
+  // SEND MESSAGE
+  // -----------------------------
   const handleSend = async () => {
     await sendMessage(id, msg);
+
+    // ⭐ Invalidate → auto refresh UI instantly
+    queryClient.invalidateQueries(["batchDetails", id]);
+
     setMsg("");
-    load();
   };
 
+  // -----------------------------
+  // ADD CLASS
+  // -----------------------------
   const handleAddClass = async () => {
     if (!classTitle || !classLink) {
       alert("Please fill both Class Title and Link");
       return;
     }
+
     await addClass(id, { title: classTitle, link: classLink });
+
+    // Auto refresh
+    queryClient.invalidateQueries(["batchDetails", id]);
+
     setClassTitle("");
     setClassLink("");
-    load();
   };
 
+  // -----------------------------
+  // COMPLETE BATCH
+  // -----------------------------
   const handleCompleteBatch = async () => {
     if (window.confirm("Are you sure you want to mark this batch as completed?")) {
       const success = await completeBatch(id);
       if (success) {
         alert("✅ Batch marked as completed!");
-        window.location.reload();
+
+        // Auto refresh instead of full reload
+        queryClient.invalidateQueries(["batchDetails", id]);
       }
     }
   };
-
-  if (!batch) return <p className="p-8">Loading...</p>;
 
   return (
     <div className="p-6 space-y-8">
@@ -89,8 +105,7 @@ const Innerbatch = () => {
         <ArrowLeft size={18} /> Back
       </button>
 
-      {/* TITLE */}
-      {/* TITLE & COMPLETE BUTTON */}
+      {/* TITLE + COMPLETE BUTTON */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-800">{batch.name}</h1>
 

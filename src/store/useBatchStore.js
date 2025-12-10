@@ -25,7 +25,7 @@ export const useBatchStore = create((set, get) => ({
       }));
       return true;
     } catch (err) {
-      console.error("Create Batch Error:", err.response?.data || err.message);
+      // console.error("Create Batch Error:", err.response?.data || err.message);
       set({
         loading: false,
         error: err.response?.data?.message || err.message,
@@ -36,7 +36,9 @@ export const useBatchStore = create((set, get) => ({
 
   // ✅ Fetch My Batches
   fetchMyBatches: async () => {
+
     set({ loading: true, error: null });
+    // set({ loading: true, error: null });
     try {
       const { data } = await api.get("/batches/mybatches");
       set({ batches: data.batches, loading: false });
@@ -53,7 +55,6 @@ export const useBatchStore = create((set, get) => ({
 
   getBatchDetails: async (id) => {
     if (!id) return;
-
     set({
       loading: true,
       accessError: null,
@@ -64,7 +65,6 @@ export const useBatchStore = create((set, get) => ({
       const { data } = await api.get(`/batches/${id}`, {
         withCredentials: true,
       });
-
       set({
         batchDetails: data,
         loading: false,
@@ -127,21 +127,21 @@ export const useBatchStore = create((set, get) => ({
       const { data } = await api.post(`/batches/${id}/class`, payload);
       return data;
     } catch (err) {
-      console.log("Add Class Error:", err);
+      // console.log("Add Class Error:", err);
+      console.warn("Full error response:", err.response?.data);
     }
   },
 
   deleteBatch: async (id) => {
     try {
       await api.delete(`/batches/${id}`);
-
       set((state) => ({
         batches: state.batches.filter((batch) => batch._id !== id),
       }));
 
       return true;
     } catch (err) {
-      console.log("Delete Batch Error:", err.response?.data || err.message);
+      // console.log("Delete Batch Error:", err.response?.data || err.message);
       return false;
     }
   },
@@ -161,7 +161,6 @@ export const useBatchStore = create((set, get) => ({
       const { data } = await api.get("/batches/my-students", {
         withCredentials: true,
       });
-
       set({
         teacherStudents: data.students || [],
         loading: false,

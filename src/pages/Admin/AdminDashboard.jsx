@@ -1,32 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { useAdminStore } from "../../store/useAdminStore";
-import { useBatchStore } from "../../store/useBatchStore";
-import api from "../../lib/axios";
-import {
-  Users,
-  BookOpen,
-  GraduationCap,
-  TrendingUp,
-} from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
+import api from "../../lib/axios";
+
+// ✅ React Query hook
+import { useBatchesQuery } from "../../hooks/useBatchesQuery";
 
 const AdminDashboard = () => {
   const { teachers, fetchApprovedTeachers } = useAdminStore();
-  const { batches, fetchAllBatches } = useBatchStore();
+  const { user } = useAuthStore();
 
+  // -----------------------------
+  // 🔥 Fetch ALL batches using React Query
+  // -----------------------------
+  const { data: batchPages } = useBatchesQuery("");
+
+  // Flatten infiniteQuery pages → single array of batches
+  const allBatches =
+    batchPages?.pages?.flatMap((p) => p.batches || []) || [];
+
+  // -----------------------------
+  // 🔥 Local Stats
+  // -----------------------------
   const [studentCount, setStudentCount] = useState(0);
   const [recentEnrollments, setRecentEnrollments] = useState(0);
-  const {user} = useAuthStore();
 
-  // 🔥 Fetch all data at load
   useEffect(() => {
     fetchApprovedTeachers(1);
-    fetchAllBatches();
-
     loadRealStudentData();
   }, []);
 
-  // 🔥 Calculate students & recent enrollments
   const loadRealStudentData = async () => {
     const res = await api.get("/batches");
     const all = res.data.batches || [];
@@ -47,6 +50,10 @@ const AdminDashboard = () => {
     setRecentEnrollments(recent);
   };
 
+  // ------------------------------------------------------
+  // UI RENDER STARTS
+  // ------------------------------------------------------
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
 
@@ -60,14 +67,14 @@ const AdminDashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-        
+
         {/* Total Students */}
         <div className="bg-white p-5 rounded-xl shadow-sm border hover:shadow-md transition">
           <p className="text-gray-500 text-sm">Total Students</p>
           <h2 className="text-3xl font-bold mt-2">{studentCount}</h2>
           <p className="text-green-600 text-xs mt-1">+5.2%</p>
         </div>
-        
+
         {/* Active Teachers */}
         <div className="bg-white p-5 rounded-xl shadow-sm border hover:shadow-md transition">
           <p className="text-gray-500 text-sm">Active Teachers</p>
@@ -78,7 +85,7 @@ const AdminDashboard = () => {
         {/* Courses Published */}
         <div className="bg-white p-5 rounded-xl shadow-sm border hover:shadow-md transition">
           <p className="text-gray-500 text-sm">Courses Published</p>
-          <h2 className="text-3xl font-bold mt-2">{batches.length}</h2>
+          <h2 className="text-3xl font-bold mt-2">{allBatches.length}</h2>
           <p className="text-green-600 text-xs mt-1">+2</p>
         </div>
 
@@ -90,11 +97,10 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* ------------- NEXT ROW ------------- */}
-
+      {/* NEXT ROW */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-10">
 
-        {/* Student Enrollment Chart (Simple Version) */}
+        {/* Enrollment Chart */}
         <div className="bg-white p-6 shadow-sm border rounded-xl">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-800">

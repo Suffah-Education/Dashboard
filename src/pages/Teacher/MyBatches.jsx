@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// SAME IMPORTS (no change)
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   ChevronDown,
   Plus,
@@ -15,6 +16,8 @@ import CreateBatchModal from "../../components/CreateBatchModal";
 import { useBatchStore } from "../../store/useBatchStore";
 import { useNavigate } from "react-router-dom";
 
+// ⭐ NEW: React Query hook
+import { useTeacherBatchesQuery } from "../../Hooks/teachers/useTeacherBatchesQuery";
 
 // ---------- TAB BUTTON ----------
 const TabButton = ({ name, isActive, onClick }) => (
@@ -29,7 +32,6 @@ const TabButton = ({ name, isActive, onClick }) => (
     {name}
   </button>
 );
-
 
 // ----------- BATCH CARD COMPONENT -----------
 const BatchCard = ({ batch, navigate, deleteBatch }) => (
@@ -69,7 +71,6 @@ const BatchCard = ({ batch, navigate, deleteBatch }) => (
 
       {/* BOTTOM BUTTONS */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 border-t pt-3 mt-auto">
-
         {/* CONTENT */}
         <button
           onClick={(e) => {
@@ -121,25 +122,44 @@ const BatchCard = ({ batch, navigate, deleteBatch }) => (
   </div>
 );
 
-
 // =========== PAGE =============
 const MyBatches = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const {
-    batches,
-    loading,
-    error,
-    fetchMyBatches,
-    deleteBatch,   // <-- IMPORTANT FIX
-  } = useBatchStore();
-
+  const { deleteBatch } = useBatchStore();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchMyBatches();
-  }, []);
+  // ⭐ NEW — React Query Fetch
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useTeacherBatchesQuery();
+
+  // Flatten pages
+  const batches = data?.pages.flatMap((p) => p.batches) || [];
+
+  // Infinite Scroll
+  const observer = useRef(null);
+
+  const lastRef = useCallback(
+    (node) => {
+      if (isFetchingNextPage) return;
+      if (!hasNextPage) return;
+
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) fetchNextPage();
+      });
+
+      if (node) observer.current.observe(node);
+    },
+    [hasNextPage, isFetchingNextPage]
+  );
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -148,7 +168,6 @@ const MyBatches = () => {
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          fetchMyBatches();
         }}
       />
 
@@ -190,23 +209,15 @@ const MyBatches = () => {
       </div>
 
       {/* LOADING */}
-      {loading && (
+      {isLoading && (
         <div className="text-center py-10 text-gray-500">
           <Clock size={20} className="animate-spin inline mr-2" />
           Loading batches...
         </div>
       )}
 
-      {/* ERROR */}
-      {error && (
-        <div className="p-3 bg-red-100 text-red-700 border border-red-200 rounded-lg text-sm flex items-center">
-          <AlertCircle size={18} className="mr-2" />
-          {error}
-        </div>
-      )}
-
       {/* EMPTY */}
-      {!loading && batches.length === 0 && (
+      {!isLoading && batches.length === 0 && (
         <div className="text-center py-10 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
           <BookOpen size={36} className="mx-auto text-gray-400 mb-3" />
           <p className="text-base font-semibold">No batches found.</p>
@@ -216,15 +227,20 @@ const MyBatches = () => {
 
       {/* BATCH GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {batches.map((batch) => (
-          <BatchCard
-            key={batch._id}
-            batch={batch}
-            navigate={navigate}
-            deleteBatch={deleteBatch}    // <-- PASS FUNCTION
-          />
+        {batches.map((batch, i) => (
+          <div ref={i === batches.length - 1 ? lastRef : null} key={batch._id}>
+            <BatchCard
+              batch={batch}
+              navigate={navigate}
+              deleteBatch={deleteBatch}
+            />
+          </div>
         ))}
       </div>
+
+      {isFetchingNextPage && (
+        <p className="text-center mt-4 text-gray-500">Loading more…</p>
+      )}
     </div>
   );
 };

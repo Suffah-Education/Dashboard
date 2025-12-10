@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useBatchStore } from "../../store/useBatchStore";
 import { ArrowLeft } from "lucide-react";
+
+// ⭐ NEW — React Query
+import { useBatchDetailsQuery } from "../../Hooks/teachers/useBatchDetailsQuery";
+import { useUpdateBatchMutation } from "../../Hooks/teachers/useUpdateBatchMutation";
 
 const EditBatch = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getBatchDetails, updateBatch, loading } = useBatchStore();
 
-  const [batch, setBatch] = useState(null);
+  // ⭐ React Query: Fetch batch details
+  const { data: batch, isLoading } = useBatchDetailsQuery(id);
+
+  // ⭐ React Query: Update batch mutation
+  const updateBatchMutation = useUpdateBatchMutation(id);
+
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -19,25 +26,20 @@ const EditBatch = () => {
     capacity: "",
   });
 
+  // Set form values when batch loads
   useEffect(() => {
-    loadBatch();
-  }, [id]);
-
-  const loadBatch = async () => {
-    const data = await getBatchDetails(id);
-    if (data) {
-      setBatch(data);
+    if (batch) {
       setForm({
-        name: data.name || "",
-        description: data.description || "",
-        syllabus: (data.syllabus || []).join("\n"),
-        price: data.price || "",
-        startDate: data.startDate?.slice(0, 10) || "",
-        endDate: data.endDate?.slice(0, 10) || "",
-        capacity: data.capacity || "",
+        name: batch.name || "",
+        description: batch.description || "",
+        syllabus: (batch.syllabus || []).join("\n"),
+        price: batch.price || "",
+        startDate: batch.startDate?.slice(0, 10) || "",
+        endDate: batch.endDate?.slice(0, 10) || "",
+        capacity: batch.capacity || "",
       });
     }
-  };
+  }, [batch]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -46,10 +48,13 @@ const EditBatch = () => {
   const handleSave = async () => {
     const updatedData = {
       ...form,
-      syllabus: form.syllabus.split("\n").filter((s) => s.trim()), // convert text back to array
+      syllabus: form.syllabus
+        .split("\n")
+        .filter((s) => s.trim()),
     };
 
-    const success = await updateBatch(id, updatedData);
+    const success = await updateBatchMutation.mutateAsync(updatedData);
+
     if (success) {
       alert("Batch Updated Successfully!");
       navigate(-1);
@@ -58,7 +63,7 @@ const EditBatch = () => {
     }
   };
 
-  if (!batch) {
+  if (isLoading || !batch) {
     return (
       <div className="p-6">
         <p className="text-gray-500">Loading batch details...</p>
@@ -142,7 +147,7 @@ const EditBatch = () => {
           />
         </div>
 
-        {/* Start Date & End Date */}
+        {/* Dates */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -194,14 +199,17 @@ const EditBatch = () => {
         >
           Cancel
         </button>
+
         <button
           onClick={handleSave}
-          disabled={loading}
+          disabled={updateBatchMutation.isPending}
           className={`px-6 py-2 bg-green-600 text-white font-semibold rounded-lg transition ${
-            loading ? "opacity-50 cursor-not-allowed" : "hover:bg-green-700"
+            updateBatchMutation.isPending
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-green-700"
           }`}
         >
-          {loading ? "Saving..." : "Save Changes"}
+          {updateBatchMutation.isPending ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </div>
