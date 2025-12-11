@@ -10,8 +10,10 @@ import {
   PlusCircle,
   Video,
   CheckCircle,
+  Download,
 } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
+import QRCode from "qrcode";
 
 // ⭐ NEW: React Query
 import { useBatchDetailsQuery } from "../../Hooks/teachers/useBatchDetailsQuery";
@@ -20,11 +22,10 @@ import { useQueryClient } from "@tanstack/react-query";
 const TabBtn = ({ label, icon: Icon, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
-      active
-        ? "text-green-600 border-b-2 border-green-600 pb-3"
-        : "text-gray-500 hover:text-green-600 pb-3"
-    }`}
+    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${active
+      ? "text-green-600 border-b-2 border-green-600 pb-3"
+      : "text-gray-500 hover:text-green-600 pb-3"
+      }`}
   >
     <Icon size={18} /> {label}
   </button>
@@ -95,6 +96,110 @@ const Innerbatch = () => {
     }
   };
 
+  // -----------------------------
+  // DOWNLOAD QR (NEW)
+
+  const downloadQR = async () => {
+    try {
+      // const productionURL = "https://thesuffaheducation.com";
+      // const url = `${productionURL}/batch-redirect/${id}`;
+
+      const productionURL = "https://www.thesuffaheducation.com";
+      const url = `${productionURL}/batch-redirect/${id}`;
+      const size = 1200;
+
+      const canvas = document.createElement("canvas");
+
+      await QRCode.toCanvas(canvas, url, {
+        width: size,
+        margin: 2,
+        errorCorrectionLevel: "H",
+        color: {
+          dark: "#0A7D38",     // Suffah Dark Green
+          light: "#E8F5E9"     // Very light green background
+        }
+      });
+
+      const ctx = canvas.getContext("2d");
+
+      // Load Logo
+      const logo = new Image();
+      logo.crossOrigin = "anonymous";
+      logo.src = "/Logo.png";
+
+      logo.onload = () => {
+        const logoSize = size * 0.23;
+        const centerX = (size - logoSize) / 2;
+        const centerY = (size - logoSize) / 2;
+
+        // White rounded container behind logo
+        const bgSize = logoSize + 50;
+        const bgX = (size - bgSize) / 2;
+        const bgY = (size - bgSize) / 2;
+        const radius = 40;
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.beginPath();
+        ctx.moveTo(bgX + radius, bgY);
+        ctx.lineTo(bgX + bgSize - radius, bgY);
+        ctx.quadraticCurveTo(bgX + bgSize, bgY, bgX + bgSize, bgY + radius);
+        ctx.lineTo(bgX + bgSize, bgY + bgSize - radius);
+        ctx.quadraticCurveTo(bgX + bgSize, bgY + bgSize, bgX + bgSize - radius, bgY + bgSize);
+        ctx.lineTo(bgX + radius, bgY + bgSize);
+        ctx.quadraticCurveTo(bgX, bgY + bgSize, bgX, bgY + bgSize - radius);
+        ctx.lineTo(bgX, bgY + radius);
+        ctx.quadraticCurveTo(bgX, bgY, bgX + radius, bgY);
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw Logo (center)
+        ctx.drawImage(logo, centerX, centerY, logoSize, logoSize);
+
+        // Add space for text below
+        const finalHeight = size + 250;
+        const finalCanvas = document.createElement("canvas");
+        finalCanvas.width = size;
+        finalCanvas.height = finalHeight;
+        const fctx = finalCanvas.getContext("2d");
+
+        // Background
+        fctx.fillStyle = "#FFFFFF";
+        fctx.fillRect(0, 0, size, finalHeight);
+
+        // Merge QR
+        fctx.drawImage(canvas, 0, 0);
+
+        // Text Styling
+        fctx.textAlign = "center";
+        fctx.fillStyle = "#0A7D38";
+
+        fctx.font = "bold 80px sans-serif";
+        fctx.fillText("Suffah Education", size / 2, size + 120);
+
+        fctx.font = "55px sans-serif";
+        let name = batch.name || "";
+        if (name.length > 25) name = name.substring(0, 25) + "...";
+        fctx.fillText(name, size / 2, size + 200);
+
+        // Download Final Image
+        const pngUrl = finalCanvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = pngUrl;
+        link.download = `Suffah_QR_${batch.name}.png`;
+        link.click();
+      };
+
+      logo.onerror = () => {
+        alert("Logo failed to load — check /public/logo.png");
+      };
+
+    } catch (error) {
+      console.error("QR Error", error);
+      alert("Failed to generate QR");
+    }
+  };
+
+
   return (
     <div className="p-6 space-y-8">
       {/* BACK BUTTON */}
@@ -108,6 +213,14 @@ const Innerbatch = () => {
       {/* TITLE + COMPLETE BUTTON */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-800">{batch.name}</h1>
+
+        {/* NEW: Download QR Button */}
+        <button
+          onClick={downloadQR}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
+        >
+          <Download size={18} /> Download QR
+        </button>
 
         {user?.role === "teacher" && !batch.isCompleted && (
           <button

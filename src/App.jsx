@@ -38,6 +38,8 @@ const Editteacherprofile = lazy(() => import("./pages/Teacher/Editteacherprofile
 const TeacherChangePassword = lazy(() => import("./pages/Teacher/TeacherChangePassword.jsx"));
 const AdminBatch = lazy(() => import("./pages/Admin/AdminBatch.jsx"));
 const TeacherRequestDetails = lazy(() => import("./pages/Admin/TeacherRequestDetails.jsx"));
+const BatchRedirect = lazy(() => import("./pages/BatchRedirect"));
+const PublicBatch = lazy(() => import("./pages/PublicBatch"));
 
 // Reusable loading fallback
 const LoadingFallback = () => (
@@ -378,6 +380,8 @@ const App = memo(function App() {
             }
           />
 
+          <Route path="/public/batch/:id" element={<Suspense fallback={<LoadingFallback />}><PublicBatch /></Suspense>} />
+          <Route path="/batch-redirect/:batchId" element={<Suspense fallback={<LoadingFallback />}><BatchRedirect /></Suspense>} />
           <Route path="*" element={<Navigate to={getRedirectPath()} />} />
 
         </Routes>
