@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useBatchStore } from "../../store/useBatchStore";
+
+import { useAdminBatchDetails } from "../../Hooks/Admin/useAdminBatchDetails";
+
 import {
   ArrowLeft,
   BookOpen,
@@ -13,27 +15,19 @@ const AdminBatch = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { getBatchDetails, batchDetails, loading } = useBatchStore();
+  const { data: batch, isLoading } = useAdminBatchDetails(id);
   const [tab, setTab] = useState("classes");
 
-  useEffect(() => {
-    getBatchDetails(id);
-  }, [id]);
-
-  if (loading || !batchDetails) {
+  if (isLoading || !batch) {
     return (
       <div className="p-8 text-center">
         <div className="animate-spin border-4 border-green-500 border-t-transparent rounded-full w-10 h-10"></div>
-        {/* <p className="mt-3 text-gray-600">Loading batch...</p> */}
       </div>
     );
   }
 
-  const batch = batchDetails;
-
   return (
     <div className="max-w-4xl mx-auto p-6">
-
       <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-2 mb-6 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded transition"
@@ -71,7 +65,6 @@ const AdminBatch = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
-
         {/* Classes */}
         {tab === "classes" && (
           <>
@@ -89,7 +82,9 @@ const AdminBatch = () => {
                     className="p-4 border rounded-lg bg-gray-50 flex justify-between"
                   >
                     <div>
-                      <p className="font-semibold">Class {i + 1}: {cls.title}</p>
+                      <p className="font-semibold">
+                        Class {i + 1}: {cls.title}
+                      </p>
                     </div>
 
                     <a
@@ -118,7 +113,10 @@ const AdminBatch = () => {
             ) : (
               <ul className="space-y-4">
                 {batch.messages.map((m) => (
-                  <li key={m._id} className="p-4 bg-blue-50 border-l-4 border-blue-600">
+                  <li
+                    key={m._id}
+                    className="p-4 bg-blue-50 border-l-4 border-blue-600"
+                  >
                     <p>{m.text}</p>
                     <span className="text-xs text-gray-600">
                       {new Date(m.createdAt).toLocaleString()}

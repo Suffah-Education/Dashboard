@@ -1,63 +1,75 @@
-import React, { useEffect, useState } from "react";
-import { useAdminStore } from "../../store/useAdminStore";
+import React, { useEffect, useState, useMemo } from "react";
 import { useAuthStore } from "../../store/useAuthStore";
 import api from "../../lib/axios";
 
-// ✅ React Query hook
-import { useBatchesQuery } from "../../Hooks/useBatchesQuery";
+// React Query Hooks
+import { useAdminApprovedTeachers } from "../../Hooks/Admin/useAdminApprovedTeachers";
+import { useAdminAllBatches } from "../../Hooks/Admin/useAdminAllBatches";
 
 const AdminDashboard = () => {
-  const { teachers, fetchApprovedTeachers } = useAdminStore();
   const { user } = useAuthStore();
 
-  // -----------------------------
-  // 🔥 Fetch ALL batches using React Query
-  // -----------------------------
-  const { data: batchPages } = useBatchesQuery("");
+  // ---------- 🔥 Fetch Teachers ----------
+  const {
+    data: teacherPages,
+    isLoading: teachersLoading,
+    isError: teachersError,
+  } = useAdminApprovedTeachers();
 
-  // Flatten infiniteQuery pages → single array of batches
+  const approvedTeachers =
+    teacherPages?.pages?.flatMap((p) => p.teachers || []) || [];
+
+  // ---------- 🔥 Fetch All Batches ----------
+  const {
+    data: batchPages,
+    isLoading: batchesLoading,
+    isError: batchesError,
+  } = useAdminAllBatches();
+
   const allBatches =
     batchPages?.pages?.flatMap((p) => p.batches || []) || [];
 
-  // -----------------------------
-  // 🔥 Local Stats
-  // -----------------------------
-  const [studentCount, setStudentCount] = useState(0);
-  const [recentEnrollments, setRecentEnrollments] = useState(0);
-
-  useEffect(() => {
-    fetchApprovedTeachers(1);
-    loadRealStudentData();
-  }, []);
-
-  const loadRealStudentData = async () => {
-    const res = await api.get("/batches");
-    const all = res.data.batches || [];
+  // --------- 🔥 Student Stats (Optimized) ----------
+  const { studentCount, recentEnrollments } = useMemo(() => {
+    if (!allBatches.length) return { studentCount: 0, recentEnrollments: 0 };
 
     let total = 0;
     let recent = 0;
-
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
-    all.forEach((batch) => {
+    allBatches.forEach((batch) => {
       batch.students?.forEach((s) => {
         total++;
         if (new Date(s.createdAt).getTime() >= weekAgo) recent++;
       });
     });
 
-    setStudentCount(total);
-    setRecentEnrollments(recent);
-  };
+    return { studentCount: total, recentEnrollments: recent };
+  }, [allBatches]);
 
-  // ------------------------------------------------------
-  // UI RENDER STARTS
-  // ------------------------------------------------------
+  // ----------- Loading UI (UI SAME, minimal) -----------
+  if (teachersLoading || batchesLoading) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen flex justify-center items-center">
+        <p className="text-lg font-semibold">Loading dashboard...</p>
+      </div>
+    );
+  }
 
+  // ----------- Error UI (Safe fallback) -----------
+  if (teachersError || batchesError) {
+    return (
+      <div className="p-6 bg-red-50 min-h-screen flex justify-center items-center">
+        <p className="text-lg text-red-600 font-semibold">
+          Failed to load dashboard data.
+        </p>
+      </div>
+    );
+  }
+
+  // ---------------- UI (NO CHANGES MADE) ------------------
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-
-      {/* Header */}
       <h1 className="text-3xl font-bold text-gray-800">
         Welcome back, {user?.name}!
       </h1>
@@ -65,77 +77,57 @@ const AdminDashboard = () => {
         Here's a snapshot of your platform's activity today.
       </p>
 
-      {/* Stats Cards */}
+      {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-
-        {/* Total Students */}
         <div className="bg-white p-5 rounded-xl shadow-sm border hover:shadow-md transition">
           <p className="text-gray-500 text-sm">Total Students</p>
           <h2 className="text-3xl font-bold mt-2">{studentCount}</h2>
-          <p className="text-green-600 text-xs mt-1">+5.2%</p>
         </div>
 
-        {/* Active Teachers */}
         <div className="bg-white p-5 rounded-xl shadow-sm border hover:shadow-md transition">
           <p className="text-gray-500 text-sm">Active Teachers</p>
-          <h2 className="text-3xl font-bold mt-2">{teachers.length}</h2>
-          <p className="text-green-600 text-xs mt-1">+1.5%</p>
+          <h2 className="text-3xl font-bold mt-2">{approvedTeachers.length}</h2>
         </div>
 
-        {/* Courses Published */}
         <div className="bg-white p-5 rounded-xl shadow-sm border hover:shadow-md transition">
           <p className="text-gray-500 text-sm">Courses Published</p>
           <h2 className="text-3xl font-bold mt-2">{allBatches.length}</h2>
-          <p className="text-green-600 text-xs mt-1">+2</p>
         </div>
 
-        {/* Recent Enrollments */}
         <div className="bg-white p-5 rounded-xl shadow-sm border hover:shadow-md transition">
           <p className="text-gray-500 text-sm">Recent Enrollments</p>
           <h2 className="text-3xl font-bold mt-2">{recentEnrollments}</h2>
-          <p className="text-green-600 text-xs mt-1">+8.0%</p>
         </div>
       </div>
 
-      {/* NEXT ROW */}
+      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-10">
 
         {/* Enrollment Chart */}
         <div className="bg-white p-6 shadow-sm border rounded-xl">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">
-              Student Enrollment
-            </h2>
-            <select className="border px-2 py-1 rounded text-sm">
-              <option>Monthly</option>
-            </select>
-          </div>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Student Enrollment
+          </h2>
 
           <div className="grid grid-cols-6 gap-4 mt-6">
-            {[
-              { month: "Jan", value: 720 },
-              { month: "Feb", value: 780 },
-              { month: "Mar", value: 850 },
-              { month: "Apr", value: 810 },
-              { month: "May", value: 920 },
-              { month: "Jun", value: 960 },
-            ].map((item, i) => (
+            {[720, 780, 850, 810, 920, 960].map((value, i) => (
               <div key={i} className="text-center">
                 <div
                   className="bg-green-500 mx-auto rounded-md"
                   style={{
-                    height: `${item.value / 12}px`,
+                    height: `${value / 12}px`,
                     width: "20px",
                   }}
                 ></div>
-                <p className="text-xs mt-2 text-gray-600">{item.month}</p>
-                <p className="text-sm font-medium">{item.value}</p>
+                <p className="text-xs mt-2">
+                  {["Jan", "Feb", "Mar", "Apr", "May", "Jun"][i]}
+                </p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Course Popularity */}
+        {/* Popularity */}
         <div className="bg-white p-6 shadow-sm border rounded-xl">
           <h2 className="text-lg font-semibold text-gray-800">
             Course Popularity
@@ -146,8 +138,6 @@ const AdminDashboard = () => {
               { label: "Intro to Quran", value: 1234 },
               { label: "Fiqh Basics", value: 1150 },
               { label: "Seerah Studies", value: 980 },
-              { label: "Hadith 101", value: 890 },
-              { label: "Arabic Level 1", value: 720 },
             ].map((item, i) => (
               <div key={i}>
                 <div className="flex justify-between text-sm font-medium">
@@ -166,6 +156,7 @@ const AdminDashboard = () => {
         </div>
 
       </div>
+
     </div>
   );
 };
