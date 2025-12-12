@@ -1,5 +1,20 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/batch-redirect/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/teacher/batch/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/student/batch/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
