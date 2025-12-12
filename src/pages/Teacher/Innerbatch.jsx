@@ -104,7 +104,7 @@ const Innerbatch = () => {
       // const productionURL = "https://thesuffaheducation.com";
       // const url = `${productionURL}/batch-redirect/${id}`;
 
-      const productionURL = "https://www.thesuffaheducation.com";
+      const productionURL = "https://dashboard.thesuffaheducation.com/";
       const url = `${productionURL}/batch-redirect/${id}`;
       const size = 1200;
 
