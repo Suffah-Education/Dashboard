@@ -118,7 +118,7 @@ const Innerbatchstudent = () => {
           onClick={() => startPayment(batch._id, batch.name, batch.price)}
           className="px-10 py-3 bg-green-600 text-white text-lg font-bold rounded-lg shadow hover:bg-green-700 transition"
         >
-          Enroll Now
+          Enroll Now {batch.price} /Month
         </button>
       </div>
     </div>

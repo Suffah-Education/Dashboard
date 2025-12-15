@@ -144,10 +144,10 @@ const Batches = () => {
                       Starts:{" "}
                       {b.startDate
                         ? new Date(b.startDate).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
                         : "TBA"}
                     </span>
                   </div>
@@ -167,7 +167,7 @@ const Batches = () => {
                     }}
                     className="w-full py-2 px-4 rounded-lg font-semibold text-white bg-green-600"
                   >
-                    Enroll for ₹{b.price}
+                    Enroll for ₹{b.price} /month
                   </button>
                 ) : isExpired ? (
                   <button

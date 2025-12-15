@@ -67,7 +67,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </div>
 
         {/* Menu Items */}
-        <nav className="flex flex-col mt-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 flex flex-col mt-4 space-y-1 overflow-y-auto">
           {menuItems.map((item) => (
             <NavLink
               key={item.name}
@@ -75,10 +75,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               onClick={() => setIsOpen(false)}
               end={item.path === `/${role}`}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-6 py-2.5 text-sm transition-all duration-200 ${
-                  isActive
-                    ? "bg-green-50 text-green-700 font-semibold border-r-4 border-green-500"
-                    : "text-gray-700 hover:bg-green-100 hover:text-green-700"
+                `flex items-center gap-3 px-6 py-2.5 text-sm transition-all duration-200 ${isActive
+                  ? "bg-green-50 text-green-700 font-semibold border-r-4 border-green-500"
+                  : "text-gray-700 hover:bg-green-100 hover:text-green-700"
                 }`
               }
             >

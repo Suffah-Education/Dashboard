@@ -79,7 +79,7 @@ const MyCourses = () => {
           {finalList.map((batch, index) => {
             const isExpired = batch.isSubscriptionExpired;
             const isLast = index === finalList.length - 1;
-            const isCompleted = batch.isCompleted || false; 
+            const isCompleted = batch.isCompleted || false;
 
             return (
               <div
@@ -158,7 +158,7 @@ const MyCourses = () => {
                       }}
                       className="w-full sm:w-auto px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
                     >
-                      Renew for ₹{batch.price}
+                      Renew for ₹{batch.price} /Month
                     </button>
                   ) : (
                     // ⭐ ACTIVE → CONTINUE

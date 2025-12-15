@@ -40,7 +40,7 @@ const Navbar = ({ setIsSidebarOpen }) => {
           {user?.name || "Student"}!
         </h1>
 
-        <Bell size={20} className="text-gray-600 cursor-pointer" />
+        {/* <Bell size={20} className="text-gray-600 cursor-pointer" /> */}
 
         {/* =======================
             PROFILE PIC DISPLAY
