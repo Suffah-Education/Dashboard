@@ -102,7 +102,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </nav>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100">
+        <div className="px-6 py-4 border-t border-gray-100 bg-white sticky bottom-0">
           <button
             onClick={logout}
             className="flex items-center text-red-500 hover:text-red-600 w-full"
@@ -111,6 +111,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             {isExpanded && "Logout"}
           </button>
         </div>
+
       </div>
 
       {/* Mobile overlay */}
