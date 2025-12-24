@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useAdminStore } from "../../store/useAdminStore";
 import { useBatchesQuery } from "../../Hooks/useBatchesQuery";
+import { useEnrolledBatchesQuery } from "../../Hooks/useEnrolledBatchesQuery";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -12,6 +13,9 @@ const StudentDashboard = () => {
 
   // 🔥 Fetch only PAGE 1 of batches (limit=12)
   const { data: batchData } = useBatchesQuery("");
+
+  // 🔥 Fetch enrolled batches for today's schedule
+  const { data: enrolledData } = useEnrolledBatchesQuery();
 
   // 🔥 Fetch approved teachers
   const { teachers, fetchApprovedTeachers } = useAdminStore();
@@ -126,7 +130,7 @@ const StudentDashboard = () => {
         {/* RIGHT SIDEBAR (unchanged UI) */}
         <div className="space-y-6">
           {/* Example schedule */}
-          <div className="bg-white p-5 rounded-xl shadow-sm">
+          {/* <div className="bg-white p-5 rounded-xl shadow-sm">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Today's Schedule
             </h3>
@@ -152,7 +156,66 @@ const StudentDashboard = () => {
                 <p>11:59 PM</p>
               </div>
             </div>
+          </div> */}
+          <div className="bg-white p-5 rounded-xl shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Today's Schedule
+            </h3>
+
+            {enrolledData?.batches
+              ?.flatMap((b) =>
+                Array.isArray(b.classes)
+                  ? b.classes.map((c) => ({
+                    ...c,
+                    batchName: b.name,
+                  }))
+                  : []
+              )
+              .filter((c) => {
+                if (!c.startTime || !c.endTime) return false;
+                const today = new Date().toDateString();
+                return new Date(c.startTime).toDateString() === today;
+              })
+              .map((cls) => (
+                <div key={cls._id} className="mb-3">
+                  <p className="font-semibold text-gray-800">
+                    {cls.batchName}
+                  </p>
+                  <p className="text-sm">{cls.title}</p>
+                  <p className="text-xs text-gray-500">
+                    📅{" "}
+                    {new Date(cls.startTime).toLocaleDateString("en-GB", {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    ⏰{" "}
+                    {new Date(cls.startTime).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                    {" - "}
+                    {new Date(cls.endTime).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              ))}
+
+            {/* fallback */}
+            {(!enrolledData?.batches ||
+              enrolledData.batches.length === 0) && (
+                <p className="text-sm text-gray-500">
+                  No classes scheduled for today.
+                </p>
+              )}
           </div>
+
+
+
 
           {/* Quick Links */}
           <div className="bg-white p-5 rounded-xl shadow-sm">

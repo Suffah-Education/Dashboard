@@ -8,6 +8,7 @@ import {
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useAuthStore } from "../../store/useAuthStore";
 import { useBatchStore } from "../../store/useBatchStore";
@@ -72,6 +73,7 @@ const scheduleData = [
 const TeacherDashboard = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { addClass, sendMessage, teacherStudents, batches } = useBatchStore();
 
@@ -107,6 +109,8 @@ const TeacherDashboard = () => {
   const [scheduleLink, setScheduleLink] = useState("");
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
+  const [scheduleEndTime, setScheduleEndTime] = useState("");
+
 
   // announcement
   const [announceBatchId, setAnnounceBatchId] = useState("");
@@ -119,7 +123,15 @@ const TeacherDashboard = () => {
   // ----------------------
   const submitSchedule = async (e) => {
     e.preventDefault();
-    if (!scheduleBatchId || !scheduleTitle || !scheduleLink || !scheduleDate || !scheduleTime) {
+
+    if (
+      !scheduleBatchId ||
+      !scheduleTitle ||
+      !scheduleLink ||
+      !scheduleDate ||
+      !scheduleTime ||
+      !scheduleEndTime
+    ) {
       alert("Please fill all fields");
       return;
     }
@@ -127,13 +139,19 @@ const TeacherDashboard = () => {
     try {
       setLoading(true);
 
-      const finalDate = new Date(`${scheduleDate}T${scheduleTime}`);
+      const startTime = new Date(`${scheduleDate}T${scheduleTime}`);
+      const endTime = new Date(`${scheduleDate}T${scheduleEndTime}`);
 
       await addClass(scheduleBatchId, {
         title: scheduleTitle,
         link: scheduleLink,
-        date: finalDate,
+        startTime,
+        endTime,
       });
+
+      // ⭐ Invalidate queries to refresh UI
+      queryClient.invalidateQueries(["teacherBatches"]);
+      queryClient.invalidateQueries(["batchDetails", scheduleBatchId]);
 
       alert("Class Scheduled Successfully!");
 
@@ -143,16 +161,17 @@ const TeacherDashboard = () => {
       setScheduleLink("");
       setScheduleDate("");
       setScheduleTime("");
+      setScheduleEndTime("");
 
       setShowSchedule(false);
-
     } catch (err) {
-      console.error(err);
-      alert("Failed to schedule class");
+      const errorMsg = err.response?.data?.message || err.message || "Failed to schedule class";
+      alert(`Failed to schedule class: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
   };
+
 
   const submitAnnouncement = async (e) => {
     e.preventDefault();
@@ -268,7 +287,10 @@ const TeacherDashboard = () => {
           setScheduleDate={setScheduleDate}
           scheduleTime={scheduleTime}
           setScheduleTime={setScheduleTime}
+          scheduleEndTime={scheduleEndTime}
+          setScheduleEndTime={setScheduleEndTime}
         />
+
       )}
 
       {showAnnouncement && (

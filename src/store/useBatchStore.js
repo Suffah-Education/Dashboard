@@ -127,8 +127,8 @@ export const useBatchStore = create((set, get) => ({
       const { data } = await api.post(`/batches/${id}/class`, payload);
       return data;
     } catch (err) {
-      // console.log("Add Class Error:", err);
-      console.warn("Full error response:", err.response?.data);
+      console.error("Failed to add class:", err.response?.data?.message || err.message);
+      throw err;
     }
   },
 

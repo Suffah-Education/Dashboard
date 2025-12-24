@@ -1,6 +1,5 @@
 import React from "react";
 
-
 const ScheduleClassModal = ({
     batches,
     onClose,
@@ -15,18 +14,27 @@ const ScheduleClassModal = ({
     scheduleDate,
     setScheduleDate,
     scheduleTime,
-setScheduleTime
+    setScheduleTime,
+    scheduleEndTime,
+    setScheduleEndTime,
 }) => {
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 space-y-4">
-
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            {/* CARD */}
+            <div
+                className="
+          bg-white w-full max-w-md 
+          rounded-xl shadow-xl
+          max-h-[85vh] overflow-y-auto
+          p-6
+        "
+            >
+                {/* HEADER */}
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">
                     Schedule a Class
                 </h2>
 
-                <form onSubmit={onSubmit} className="space-y-4">
-
+                <form onSubmit={onSubmit} className="space-y-3">
                     {/* Select Batch */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -46,7 +54,7 @@ setScheduleTime
                         </select>
                     </div>
 
-                    {/* Title */}
+                    {/* Class Title */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Class Title
@@ -72,7 +80,7 @@ setScheduleTime
                         />
                     </div>
 
-                    {/* Date & Time */}
+                    {/* Date */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Date
@@ -85,9 +93,10 @@ setScheduleTime
                         />
                     </div>
 
+                    {/* Start Time */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Time
+                            Start Time
                         </label>
                         <input
                             type="time"
@@ -97,9 +106,21 @@ setScheduleTime
                         />
                     </div>
 
+                    {/* End Time */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            End Time
+                        </label>
+                        <input
+                            type="time"
+                            className="w-full border rounded-lg px-3 py-2"
+                            value={scheduleEndTime}
+                            onChange={(e) => setScheduleEndTime(e.target.value)}
+                        />
+                    </div>
 
-                    {/* Buttons */}
-                    <div className="flex justify-end gap-3 pt-2">
+                    {/* ACTION BUTTONS */}
+                    <div className="flex justify-end gap-3 pt-3">
                         <button
                             type="button"
                             onClick={onClose}
@@ -116,7 +137,6 @@ setScheduleTime
                             {loading ? "Saving..." : "Save"}
                         </button>
                     </div>
-
                 </form>
             </div>
         </div>

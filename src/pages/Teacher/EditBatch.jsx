@@ -53,15 +53,19 @@ const EditBatch = () => {
         .filter((s) => s.trim()),
     };
 
-    const success = await updateBatchMutation.mutateAsync(updatedData);
+    try {
+      await updateBatchMutation.mutateAsync({
+        batchId: id,
+        payload: updatedData,
+      });
 
-    if (success) {
       alert("Batch Updated Successfully!");
       navigate(-1);
-    } else {
-      alert("Failed to update batch. Please try again.");
+    } catch (err) {
+      alert("Failed to update batch");
     }
   };
+
 
   if (isLoading || !batch) {
     return (
@@ -203,11 +207,10 @@ const EditBatch = () => {
         <button
           onClick={handleSave}
           disabled={updateBatchMutation.isPending}
-          className={`px-6 py-2 bg-green-600 text-white font-semibold rounded-lg transition ${
-            updateBatchMutation.isPending
-              ? "opacity-50 cursor-not-allowed"
-              : "hover:bg-green-700"
-          }`}
+          className={`px-6 py-2 bg-green-600 text-white font-semibold rounded-lg transition ${updateBatchMutation.isPending
+            ? "opacity-50 cursor-not-allowed"
+            : "hover:bg-green-700"
+            }`}
         >
           {updateBatchMutation.isPending ? "Saving..." : "Save Changes"}
         </button>

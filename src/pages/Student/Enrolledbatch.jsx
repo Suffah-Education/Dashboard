@@ -159,7 +159,7 @@ const EnrolledBatch = () => {
               </div>
             ) : (
               <ul className="space-y-4">
-                {batch.classes.map((cls, idx) => (
+                {/* {batch.classes.map((cls, idx) => (
                   <li
                     key={cls._id}
                     className="p-4 border rounded-lg hover:shadow-md transition flex justify-between items-center bg-gray-50"
@@ -183,16 +183,100 @@ const EnrolledBatch = () => {
 
                     {cls.link && (
                       <a
-                        href={cls.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition font-semibold whitespace-nowrap"
+                        href={canJoin ? cls.link : undefined}
+                        onClick={(e) => !canJoin && e.preventDefault()}
+                        className={`ml-4 px-4 py-2 rounded font-semibold${canJoin
+                          ? "bg-green-600 text-white hover:bg-green-700"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
                       >
-                        Join Class
+                        {canJoin ? "Join Class" : "Class Not Started"}
                       </a>
+
                     )}
                   </li>
-                ))}
+                ))} */}
+                {batch.classes.map((cls, idx) => {
+                  const now = new Date();
+
+                  const startTime = cls.startTime
+                    ? new Date(cls.startTime)
+                    : null;
+
+                  const endTime = cls.endTime
+                    ? new Date(cls.endTime)
+                    : null;
+
+                  const canJoin =
+                    startTime &&
+                    endTime &&
+                    now >= startTime &&
+                    now <= endTime;
+
+                  return (
+                    <li
+                      key={cls._id}
+                      className="p-4 border rounded-lg hover:shadow-md transition flex justify-between items-center bg-gray-50"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">
+                            Class {idx + 1}
+                          </span>
+                        </div>
+
+                        <h3 className="font-semibold text-gray-800">
+                          {cls.title}
+                        </h3>
+
+                        {startTime && endTime && (
+                          <>
+                            <p className="text-sm text-gray-500">
+                              📅{" "}
+                              {startTime.toLocaleDateString("en-GB", {
+                                weekday: "short",
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              ⏰{" "}
+                              {startTime.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                              {" - "}
+                              {endTime.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </>
+                        )}
+                      </div>
+
+                      {cls.link && (
+                        <a
+                          href={canJoin ? cls.link : undefined}
+                          onClick={(e) => !canJoin && e.preventDefault()}
+                          className={`ml-4 px-4 py-2 rounded font-semibold ${canJoin
+                              ? "bg-green-600 text-white hover:bg-green-700"
+                              : endTime && now > endTime
+                                ? "bg-red-100 text-red-600 cursor-not-allowed"
+                                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            }`}
+                        >
+                          {canJoin
+                            ? "Join Class"
+                            : endTime && now > endTime
+                              ? "Class Ended"
+                              : "Class Not Started"}
+                        </a>
+                      )}
+                    </li>
+                  );
+                })}
+
               </ul>
             )}
           </div>
