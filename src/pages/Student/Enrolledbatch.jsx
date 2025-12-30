@@ -97,6 +97,15 @@ const EnrolledBatch = () => {
 
   const batch = batchDetails;
 
+  // Sort classes: Newest first (Descending)
+  const sortedClasses = batch.classes
+    ? [...batch.classes].sort((a, b) => {
+      const tA = new Date(a.startTime || a.date || 0).getTime();
+      const tB = new Date(b.startTime || b.date || 0).getTime();
+      return tB - tA;
+    })
+    : [];
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Back Button */}
@@ -152,7 +161,7 @@ const EnrolledBatch = () => {
               Classes
             </h2>
 
-            {!batch.classes || batch.classes.length === 0 ? (
+            {!sortedClasses || sortedClasses.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <BookOpen size={40} className="mx-auto mb-2 opacity-50" />
                 <p>No classes added yet. Check back soon!</p>
@@ -195,7 +204,7 @@ const EnrolledBatch = () => {
                     )}
                   </li>
                 ))} */}
-                {batch.classes.map((cls, idx) => {
+                {sortedClasses.map((cls, idx) => {
                   const now = new Date();
 
                   const startTime = cls.startTime
@@ -220,7 +229,7 @@ const EnrolledBatch = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">
-                            Class {idx + 1}
+                            Class {sortedClasses.length - idx}
                           </span>
                         </div>
 
@@ -260,10 +269,10 @@ const EnrolledBatch = () => {
                           href={canJoin ? cls.link : undefined}
                           onClick={(e) => !canJoin && e.preventDefault()}
                           className={`ml-4 px-4 py-2 rounded font-semibold ${canJoin
-                              ? "bg-green-600 text-white hover:bg-green-700"
-                              : endTime && now > endTime
-                                ? "bg-red-100 text-red-600 cursor-not-allowed"
-                                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            ? "bg-green-600 text-white hover:bg-green-700"
+                            : endTime && now > endTime
+                              ? "bg-red-100 text-red-600 cursor-not-allowed"
+                              : "bg-gray-300 text-gray-500 cursor-not-allowed"
                             }`}
                         >
                           {canJoin

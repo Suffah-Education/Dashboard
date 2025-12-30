@@ -44,6 +44,10 @@ const Innerbatch = () => {
   const [msg, setMsg] = useState("");
   const [classTitle, setClassTitle] = useState("");
   const [classLink, setClassLink] = useState("");
+  // NEW: Date/Time states
+  const [classDate, setClassDate] = useState("");
+  const [classTime, setClassTime] = useState("");
+  const [classEndTime, setClassEndTime] = useState("");
 
   // ⭐ REACT QUERY: FETCH BATCH DETAILS
   const { data: batch, isLoading } = useBatchDetailsQuery(id);
@@ -67,18 +71,38 @@ const Innerbatch = () => {
   // ADD CLASS
   // -----------------------------
   const handleAddClass = async () => {
-    if (!classTitle || !classLink) {
-      alert("Please fill both Class Title and Link");
+    if (!classTitle || !classLink || !classDate || !classTime || !classEndTime) {
+      alert("Please fill all fields: Title, Link, Date, Start & End Time");
       return;
     }
 
-    await addClass(id, { title: classTitle, link: classLink });
+    try {
+      const startTime = new Date(`${classDate}T${classTime}`);
+      const endTime = new Date(`${classDate}T${classEndTime}`);
 
-    // Auto refresh
-    queryClient.invalidateQueries(["batchDetails", id]);
+      await addClass(id, {
+        title: classTitle,
+        link: classLink,
+        startTime,
+        endTime
+      });
 
-    setClassTitle("");
-    setClassLink("");
+      // Auto refresh
+      queryClient.invalidateQueries(["batchDetails", id]);
+
+      // Reset form
+      setClassTitle("");
+      setClassLink("");
+      setClassDate("");
+      setClassTime("");
+      setClassEndTime("");
+
+      alert("Class added successfully!");
+
+    } catch (error) {
+      console.error("Failed to add class", error);
+      alert("Failed to add class");
+    }
   };
 
   // -----------------------------
@@ -404,6 +428,37 @@ const Innerbatch = () => {
               value={classLink}
               onChange={(e) => setClassLink(e.target.value)}
             />
+
+            {/* NEW: DATE & TIME INPUTS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="text-sm text-gray-600 block mb-1">Date</label>
+                <input
+                  type="date"
+                  className="w-full border p-2 rounded"
+                  value={classDate}
+                  onChange={(e) => setClassDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-600 block mb-1">Start Time</label>
+                <input
+                  type="time"
+                  className="w-full border p-2 rounded"
+                  value={classTime}
+                  onChange={(e) => setClassTime(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-gray-600 block mb-1">End Time</label>
+                <input
+                  type="time"
+                  className="w-full border p-2 rounded"
+                  value={classEndTime}
+                  onChange={(e) => setClassEndTime(e.target.value)}
+                />
+              </div>
+            </div>
 
             <button
               onClick={handleAddClass}
