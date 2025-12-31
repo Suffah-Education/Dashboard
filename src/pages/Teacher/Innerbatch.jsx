@@ -11,6 +11,7 @@ import {
   Video,
   CheckCircle,
   Download,
+  Trash,
 } from "lucide-react";
 import { useAuthStore } from "../../store/useAuthStore";
 import QRCode from "qrcode";
@@ -38,7 +39,7 @@ const Innerbatch = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { sendMessage, addClass, completeBatch } = useBatchStore();
+  const { sendMessage, addClass, deleteClass, completeBatch } = useBatchStore();
   const { user } = useAuthStore();
 
   const [msg, setMsg] = useState("");
@@ -102,6 +103,22 @@ const Innerbatch = () => {
     } catch (error) {
       console.error("Failed to add class", error);
       alert("Failed to add class");
+    }
+  };
+
+  // -----------------------------
+  // DELETE CLASS
+  // -----------------------------
+  const handleDeleteClass = async (classId) => {
+    if (window.confirm("Are you sure you want to delete this class?")) {
+      const success = await deleteClass(id, classId);
+      if (success) {
+        // Auto refresh
+        queryClient.invalidateQueries(["batchDetails", id]);
+        alert("Class deleted successfully");
+      } else {
+        alert("Failed to delete class");
+      }
     }
   };
 
@@ -476,26 +493,40 @@ const Innerbatch = () => {
               <p className="text-gray-500">No classes added yet.</p>
             ) : (
               <div className="space-y-4">
-                {batch.classes.map((cls, i) => (
-                  <div
-                    key={i}
-                    className="p-4 bg-gray-100 rounded-xl shadow flex justify-between items-center"
-                  >
-                    <div>
-                      <p className="font-semibold">{cls.title}</p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(cls.date).toLocaleString()}
-                      </p>
-                    </div>
-                    <a
-                      href={cls.link}
-                      target="_blank"
-                      className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
+                {[...batch.classes]
+                  .sort((a, b) => new Date(b.startTime || b.date || 0) - new Date(a.startTime || a.date || 0))
+                  .map((cls, i) => (
+                    <div
+                      key={i}
+                      className="p-4 bg-gray-100 rounded-xl shadow flex justify-between items-center"
                     >
-                      Join
-                    </a>
-                  </div>
-                ))}
+                      <div>
+                        <p className="font-semibold">{cls.title}</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(cls.date).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <a
+                          href={cls.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700"
+                        >
+                          Join
+                        </a>
+                        {user?.role === "teacher" && (
+                          <button
+                            onClick={() => handleDeleteClass(cls._id)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition"
+                            title="Delete Class"
+                          >
+                            <Trash size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
               </div>
             )}
           </div>

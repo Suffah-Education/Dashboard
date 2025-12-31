@@ -17,10 +17,15 @@ const MyCourses = () => {
   }, [page]);
 
   const finalList = useMemo(() => {
-    if (!enrolledBatches) return [];
-    if (Array.isArray(enrolledBatches)) return enrolledBatches;
-    if (Array.isArray(enrolledBatches.batches)) return enrolledBatches.batches;
-    return [];
+    let list = [];
+    if (enrolledBatches && Array.isArray(enrolledBatches)) {
+      list = enrolledBatches;
+    } else if (enrolledBatches?.batches && Array.isArray(enrolledBatches.batches)) {
+      list = enrolledBatches.batches;
+    }
+
+    // Sort by startDate descending (Recent batches first)
+    return [...list].sort((a, b) => new Date(b.startDate || 0) - new Date(a.startDate || 0));
   }, [enrolledBatches]);
 
   const totalPages = enrolledBatches?.totalPages || 1;

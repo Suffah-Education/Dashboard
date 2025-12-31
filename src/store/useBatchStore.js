@@ -132,6 +132,16 @@ export const useBatchStore = create((set, get) => ({
     }
   },
 
+  deleteClass: async (batchId, classId) => {
+    try {
+      await api.delete(`/batches/${batchId}/class/${classId}`);
+      return true;
+    } catch (err) {
+      console.error("Failed to delete class:", err.response?.data?.message || err.message);
+      return false;
+    }
+  },
+
   deleteBatch: async (id) => {
     try {
       await api.delete(`/batches/${id}`);
