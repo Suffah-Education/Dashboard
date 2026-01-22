@@ -229,7 +229,7 @@ export const useAuthStore = create(
         if (error) {
           console.error("❌ Persist Error:", error);
         } else {
-          console.log("✅ Auth Store Rehydrated");
+
         }
 
         // VERY IMPORTANT — needed for profilepic to appear after login

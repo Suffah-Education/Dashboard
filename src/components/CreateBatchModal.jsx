@@ -188,7 +188,7 @@ const CreateBatchModal = ({ isOpen, onClose }) => {
           </div>
 
           {/* Duration */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Duration</label>
             <input
               type="text"
@@ -198,7 +198,7 @@ const CreateBatchModal = ({ isOpen, onClose }) => {
               placeholder="e.g., 3 Months"
               className="w-full px-4 py-2 border rounded-lg focus:ring-green-500"
             />
-          </div>
+          </div> */}
 
           {/* Description */}
           <div>
