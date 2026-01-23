@@ -3,7 +3,9 @@ import { Suspense, lazy, memo } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
 import RootReady from "./routes/RootLayout";
+import { Analytics } from '@vercel/analytics/react';
 import ProtectedRoute from "./routes/ProtectedRoute";
+
 
 // Fast-load auth pages (critical path)
 import Signup from "./auth/Signup";
@@ -385,6 +387,7 @@ const App = memo(function App() {
           <Route path="*" element={<Navigate to={getRedirectPath()} />} />
 
         </Routes>
+        <Analytics/>
       </BrowserRouter>
     </RootReady>
   );
