@@ -14,6 +14,6 @@ export const useTeacherBatchesQuery = () => {
       }
       return undefined;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes caching
+    staleTime: 0, // Always refetch to avoid Android cache issues
   });
 };

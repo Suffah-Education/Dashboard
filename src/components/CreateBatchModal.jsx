@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { X, Calendar, Users, Hash, PlusCircle, Trash, IndianRupee } from "lucide-react";
 import { useBatchStore } from "../store/useBatchStore";
 import { useAuthStore } from "../store/useAuthStore";
+import { useQueryClient } from "@tanstack/react-query";
 
 const CreateBatchModal = ({ isOpen, onClose }) => {
   const { createBatch, loading } = useBatchStore();
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const [syllabus, setSyllabus] = useState([]);
   const [topicInput, setTopicInput] = useState("");
@@ -54,6 +56,7 @@ const CreateBatchModal = ({ isOpen, onClose }) => {
     const success = await createBatch(payload);
 
     if (success) {
+      queryClient.invalidateQueries(["teacherBatches"]);
       alert("Batch created successfully!");
       setFormData({
         name: "",
