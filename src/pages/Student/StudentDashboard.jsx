@@ -4,17 +4,13 @@ import { useNavigate } from "react-router-dom";
 
 import { useAuthStore } from "../../store/useAuthStore";
 import { useAdminStore } from "../../store/useAdminStore";
-import { useBatchesQuery } from "../../Hooks/useBatchesQuery";
 import { useEnrolledBatchesQuery } from "../../Hooks/useEnrolledBatchesQuery";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
-  // 🔥 Fetch only PAGE 1 of batches (limit=12)
-  const { data: batchData } = useBatchesQuery("");
-
-  // 🔥 Fetch enrolled batches for today's schedule
+  // 🔥 Fetch enrolled batches for courses section and today's schedule
   const { data: enrolledData } = useEnrolledBatchesQuery();
 
   // 🔥 Fetch approved teachers
@@ -24,11 +20,14 @@ const StudentDashboard = () => {
     fetchApprovedTeachers(1);
   }, []);
 
-  // 🔥 Select only first 3 batches
+  // 🔥 Select only first 3 enrolled batches (sorted by recent)
   const topBatches = useMemo(() => {
-    if (!batchData?.pages) return [];
-    return batchData.pages[0].batches.slice(0, 3);
-  }, [batchData]);
+    if (!enrolledData?.batches) return [];
+    const sorted = [...enrolledData.batches].sort(
+      (a, b) => new Date(b.startDate || 0) - new Date(a.startDate || 0)
+    );
+    return sorted.slice(0, 3);
+  }, [enrolledData]);
 
   // 🔥 Select top 3 teachers
   const topTeachers = teachers.slice(0, 3);
@@ -42,14 +41,14 @@ const StudentDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT SECTION */}
         <div className="lg:col-span-2">
-          {/* ------------------ TOP BATCHES ------------------ */}
+          {/* ------------------ MY ENROLLED COURSES ------------------ */}
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
-              Batches
+              My Courses
             </h2>
 
             <button
-              onClick={() => navigate("/student/batches")}
+              onClick={() => navigate("/student/mycourses")}
               className="text-green-600 text-sm font-medium flex items-center hover:text-green-700"
             >
               View All <ArrowRight size={16} className="ml-1" />
@@ -57,32 +56,59 @@ const StudentDashboard = () => {
           </div>
 
           {topBatches.length === 0 ? (
-            <p className="text-gray-500 text-center mt-4">No batches available.</p>
+            <p className="text-gray-500 text-center mt-4">No enrolled courses yet.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-8">
-              {topBatches.map((batch) => (
-                <div
-                  key={batch._id}
-                  className="bg-white shadow-sm rounded-xl overflow-hidden hover:shadow-md transition cursor-pointer"
-                  onClick={() => navigate(`/student/batch/${batch._id}`)}
-                >
-                  <div className="h-32 bg-gray-100 flex items-center justify-center text-gray-700 font-bold text-xl">
-                    {batch.name}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-gray-800 mb-1">
-                      {batch.code}
-                    </h3>
-                    <p className="text-gray-500 text-sm mb-3">
-                      {batch.teacher?.name}
-                    </p>
+              {topBatches.map((batch) => {
+                const isExpired = batch.isSubscriptionExpired;
+                const isCompleted = batch.isCompleted || false;
 
-                    <button className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-1.5 rounded-md">
-                      View
-                    </button>
+                return (
+                  <div
+                    key={batch._id}
+                    className="bg-white shadow-sm rounded-xl overflow-hidden hover:shadow-md transition cursor-pointer"
+                    onClick={() => navigate(`/student/enrolled/${batch._id}`)}
+                  >
+                    <div className="h-32 bg-gray-100 flex items-center justify-center text-gray-700 font-bold text-xl">
+                      {batch.name}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-gray-800 mb-1">
+                        {batch.code}
+                      </h3>
+                      <p className="text-gray-500 text-sm mb-3">
+                        {batch.teacher?.name}
+                      </p>
+
+                      {isCompleted ? (
+                        <button
+                          className="bg-gray-400 text-white text-sm px-4 py-1.5 rounded-md cursor-default"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Completed
+                        </button>
+                      ) : isExpired ? (
+                        <button
+                          className="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-1.5 rounded-md"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Expired
+                        </button>
+                      ) : (
+                        <button
+                          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-1.5 rounded-md"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/student/enrolled/${batch._id}`);
+                          }}
+                        >
+                          Go to Class
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
